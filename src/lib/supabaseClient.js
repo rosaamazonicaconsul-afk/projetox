@@ -2,7 +2,7 @@ import { createClient } from "@supabase/supabase-js"
 
 // Dados REAIS do seu projeto (URL higienizada sem o caminho /rest/v1/)
 const REAL_SUPABASE_URL = "https://biflpcknndsmlizemizx.supabase.co"
-const REAL_SUPABASE_ANON_KEY = "COLE_AQUI_A_SUA_CHAVE_ANON_LONGA"
+const REAL_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJpZmxwY2tubmRzbWxpemVtaXp4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk1MTM3ODgsImV4cCI6MjA5NTA4OTc4OH0.telK_yo5J4adbwaVl85MkcV5e-AERZKYUT9Qhtb1twg"
 
 // Informa ao validador estrito que o import.meta contém propriedades dinâmicas do Vite
 /** @type {any} */
