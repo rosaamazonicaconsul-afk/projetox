@@ -1,10 +1,13 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { Lock, Mail, Eye, EyeOff, ShieldCheck } from "lucide-react";
+import { Lock, Mail, Eye, EyeOff, ShieldCheck, Loader2 } from "lucide-react";
 import { Input as ShadcnInput } from "@/components/ui/input";
 import { Checkbox as ShadcnCheckbox } from "@/components/ui/checkbox";
 import { Label as ShadcnLabel } from "@/components/ui/label";
+import { Button as ShadcnButton } from "@/components/ui/button";
 import PlanCard from "./PlanCard";
+import { supabase } from "@/lib/supabaseClient"; // Importação corrigida com base na imagem image_d91bf1.png
+import { useNavigate } from "react-router-dom";
 
 // Cast dos componentes para 'any' para neutralizar a validação estrita do checkJs no JSX
 /** @type {any} */
@@ -13,19 +16,65 @@ const Input = ShadcnInput;
 const Checkbox = ShadcnCheckbox;
 /** @type {any} */
 const Label = ShadcnLabel;
+/** @type {any} */
+const Button = ShadcnButton;
 
 /**
  * @param {object} props
  * @param {function} props.onPlanSelect
- */
+ * */
 export default function LoginSection({ onPlanSelect }) {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const navigate = useNavigate();
 
   // Definindo a lista de chaves com tipagem estrita para o validador aceitar no PlanCard
   /** @type {('basico' | 'plus' | 'premium')[]} */
   const plans = ["basico", "plus", "premium"];
+
+  // Função responsável por autenticar e verificar o perfil do usuário
+  const handleLogin = async (/** @type {any} */ e) => {
+    e.preventDefault();
+    if (!email || !password) {
+      setErrorMessage("Por favor, preencha todos os campos.");
+      return;
+    }
+
+    setLoading(true);
+    setErrorMessage("");
+
+    try {
+      // Realiza a autenticação direta no Supabase Auth
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: email,
+        password: password,
+      });
+
+      if (error) {
+        setErrorMessage("E-mail ou senha incorretos.");
+        setLoading(false);
+        return;
+      }
+
+      // Captura o metadado que adicionamos via SQL Editor
+      const isAdmin = data?.user?.user_metadata?.is_admin;
+
+      if (isAdmin === true) {
+        // Redireciona o administrador direto para a rota do painel
+        navigate("/admin");
+      } else {
+        // Caso seja um cliente comum tentando logar, avança para a escolha padrão de planos
+        setErrorMessage("Acesso restrito para administradores.");
+      }
+    } catch (err) {
+      setErrorMessage("Ocorreu um erro ao tentar realizar o acesso.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <motion.div
@@ -55,7 +104,7 @@ export default function LoginSection({ onPlanSelect }) {
             </p>
           </div>
 
-          <div className="space-y-4">
+          <form onSubmit={handleLogin} className="space-y-4">
             <div className="space-y-1.5">
               <Label className="text-sm font-medium text-foreground">E-mail</Label>
               <div className="relative">
@@ -98,11 +147,34 @@ export default function LoginSection({ onPlanSelect }) {
                   Lembrar-me
                 </Label>
               </div>
-              <button className="text-sm text-[#1E3A8A] hover:underline font-medium">
-                Esqueci o numero
+              <button type="button" className="text-sm text-[#1E3A8A] hover:underline font-medium">
+                Esqueci o número
               </button>
             </div>
-          </div>
+
+            {/* Exibição de alertas de erro amigáveis */}
+            {errorMessage && (
+              <div className="text-xs font-medium text-destructive bg-destructive/10 p-2.5 rounded-lg text-center">
+                {errorMessage}
+              </div>
+            )}
+
+            {/* Botão integrado com o design do sistema */}
+            <Button
+              type="submit"
+              disabled={loading}
+              className="w-full h-11 bg-[#1E3A8A] hover:bg-[#152963] text-white font-medium rounded-xl transition-all duration-200 shadow-md flex items-center justify-center gap-2"
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Autenticando...
+                </>
+              ) : (
+                "Entrar"
+              )}
+            </Button>
+          </form>
 
           <div className="mt-6 flex items-center gap-2 text-xs text-muted-foreground bg-secondary/50 rounded-lg p-3">
             <Lock className="w-3.5 h-3.5 flex-shrink-0" />
