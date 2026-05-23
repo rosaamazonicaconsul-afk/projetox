@@ -1,8 +1,8 @@
 import { createClient } from "@supabase/supabase-js"
 
-// Coloque aqui os dados REAIS obtidos no painel do seu Supabase (Project Settings > API)
-const REAL_SUPABASE_URL = "https://seu-projeto.supabase.co"
-const REAL_SUPABASE_ANON_KEY = "sua-chave-anon-public-longa-aqui"
+// Dados REAIS do seu projeto (URL higienizada sem o caminho /rest/v1/)
+const REAL_SUPABASE_URL = "https://biflpcknndsmlizemizx.supabase.co"
+const REAL_SUPABASE_ANON_KEY = "COLE_AQUI_A_SUA_CHAVE_ANON_LONGA"
 
 // Informa ao validador estrito que o import.meta contém propriedades dinâmicas do Vite
 /** @type {any} */
