@@ -9,7 +9,8 @@ import {
   CheckCircle,
   UserCheck,
   Clock,
-  ArrowUpRight
+  ArrowUpRight,
+  Calendar
 } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
 
@@ -32,7 +33,7 @@ export default function AdminDashboard() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStep, setFilterStep] = useState("all");
 
-  // Busca dados em tempo real diretamente do Supabase
+  // Busca dados em tempo real diretamente do Supabase ordenando cronologicamente por padrão
   const fetchProfiles = async () => {
     setLoading(true);
     try {
@@ -73,6 +74,27 @@ export default function AdminDashboard() {
     return matchesSearch && matchesStep;
   });
 
+  // Função auxiliar para formatar a data e horário amigavelmente no padrão brasileiro
+  const formatDateTime = (/** @type {string} */ isoString) => {
+    if (!isoString) return { date: "—", time: "—" };
+    try {
+      const dateObj = new Date(isoString);
+      const date = dateObj.toLocaleDateString("pt-BR", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric"
+      });
+      const time = dateObj.toLocaleTimeString("pt-BR", {
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit"
+      });
+      return { date, time };
+    } catch (e) {
+      return { date: "—", time: "—" };
+    }
+  };
+
   // Cálculos de métricas rápidas baseados nos dados reais do banco
   const totalSubscribers = profiles.length;
   const completedRegistrations = profiles.filter(p => p.step_completed === 3).length;
@@ -84,7 +106,7 @@ export default function AdminDashboard() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
         <div>
           <h1 className="text-2xl lg:text-3xl font-bold tracking-tight">Painel Administrativo</h1>
-          <p className="text-slate-400 text-sm mt-1">Gerencie leads e propostas de consórcios em tempo real.</p>
+          <p className="text-slate-400 text-sm mt-1">Linha do tempo de informações recebidas e atualizadas por data e horário.</p>
         </div>
         <button
           onClick={fetchProfiles}
@@ -155,13 +177,14 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* Table Container */}
+      {/* Table Container - Configurada para foco em Data e Horário */}
       <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="border-b border-slate-800 text-slate-400 text-xs font-semibold uppercase bg-slate-950">
-                <th className="p-4 pl-6">Cliente / Contato</th>
+                <th className="p-4 pl-6 w-52">Data / Horário</th>
+                <th className="p-4">Informações do Cliente</th>
                 <th className="p-4">Documento</th>
                 <th className="p-4">Plano Escolhido</th>
                 <th className="p-4">Status do Fluxo</th>
@@ -171,58 +194,76 @@ export default function AdminDashboard() {
             <tbody className="divide-y divide-slate-800 text-sm">
               {loading ? (
                 <tr>
-                  <td colSpan={5} className="p-10 text-center text-slate-500">
-                    Carregando registros do banco de dados...
+                  <td colSpan={6} className="p-10 text-center text-slate-500">
+                    Carregando logs de registros...
                   </td>
                 </tr>
               ) : filteredProfiles.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="p-10 text-center text-slate-500">
-                    Nenhum cliente encontrado com os filtros aplicados.
+                  <td colSpan={6} className="p-10 text-center text-slate-500">
+                    Nenhuma informação encontrada com os filtros atuais.
                   </td>
                 </tr>
               ) : (
-                filteredProfiles.map((profile) => (
-                  <tr key={profile.id} className="hover:bg-slate-850/40 transition-colors">
-                    <td className="p-4 pl-6">
-                      <div className="font-semibold text-slate-200">
-                        {profile.full_name || "Nome não preenchido"}
-                      </div>
-                      <div className="text-xs text-slate-400 mt-0.5">{profile.email}</div>
-                      {profile.phone && (
-                        <div className="text-xs text-slate-500 mt-0.5">{profile.phone}</div>
-                      )}
-                    </td>
-                    <td className="p-4 align-middle text-slate-300 font-mono text-xs">
-                      {profile.cpf || "—"}
-                    </td>
-                    <td className="p-4 align-middle">
-                      <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-amber-500/10 text-[#D97706]">
-                        {profile.selected_plan || "Não definido"}
-                      </span>
-                    </td>
-                    <td className="p-4 align-middle">
-                      {profile.step_completed === 3 ? (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400">
-                          <CheckCircle className="w-3.5 h-3.5" /> Sucesso (Fase 3)
+                filteredProfiles.map((profile) => {
+                  const { date, time } = formatDateTime(profile.updated_at);
+                  return (
+                    <tr key={profile.id} className="hover:bg-slate-850/40 transition-colors">
+                      {/* Coluna Principal Desmembrada por Data e Horário */}
+                      <td className="p-4 pl-6 align-middle border-r border-slate-800/40 bg-slate-950/20">
+                        <div className="flex items-center gap-1.5 text-slate-200 font-semibold text-xs">
+                          <Calendar className="w-3.5 h-3.5 text-blue-400" />
+                          {date}
+                        </div>
+                        <div className="text-xs font-mono text-slate-400 mt-0.5 pl-5">
+                          {time}
+                        </div>
+                      </td>
+
+                      <td className="p-4 align-middle">
+                        <div className="font-semibold text-slate-200">
+                          {profile.full_name || "Nome não preenchido"}
+                        </div>
+                        <div className="text-xs text-slate-400 mt-0.5">{profile.email}</div>
+                        {profile.phone && (
+                          <div className="text-xs text-slate-500 mt-0.5">{profile.phone}</div>
+                        )}
+                      </td>
+
+                      <td className="p-4 align-middle text-slate-300 font-mono text-xs">
+                        {profile.cpf || "—"}
+                      </td>
+
+                      <td className="p-4 align-middle">
+                        <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-amber-500/10 text-[#D97706]">
+                          {profile.selected_plan || "Não definido"}
                         </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-amber-500/10 text-amber-400">
-                          <Clock className="w-3.5 h-3.5" /> Abandono (Fase 2)
-                        </span>
-                      )}
-                    </td>
-                    <td className="p-4 pr-6 align-middle text-right">
-                      <button
-                        onClick={() => alert(`Visualizando detalhes do ID seguro: ${profile.id}`)}
-                        className="inline-flex items-center gap-1 text-xs text-blue-400 hover:text-blue-300 font-medium transition-colors"
-                      >
-                        Ver Detalhes
-                        <ArrowUpRight className="w-3 h-3" />
-                      </button>
-                    </td>
-                  </tr>
-                ))
+                      </td>
+
+                      <td className="p-4 align-middle">
+                        {profile.step_completed === 3 ? (
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400">
+                            <CheckCircle className="w-3.5 h-3.5" /> Sucesso (Fase 3)
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-amber-500/10 text-amber-400">
+                            <Clock className="w-3.5 h-3.5" /> Abandono (Fase 2)
+                          </span>
+                        )}
+                      </td>
+
+                      <td className="p-4 pr-6 align-middle text-right">
+                        <button
+                          onClick={() => alert(`Visualizando detalhes do ID seguro: ${profile.id}`)}
+                          className="inline-flex items-center gap-1 text-xs text-blue-400 hover:text-blue-300 font-medium transition-colors"
+                        >
+                          Ver Detalhes
+                          <ArrowUpRight className="w-3 h-3" />
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
