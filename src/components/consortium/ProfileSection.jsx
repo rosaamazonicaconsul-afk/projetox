@@ -10,6 +10,7 @@ import {
   Hash,
   Calendar,
   ShieldCheck,
+  Loader2
 } from "lucide-react";
 import { Input as ShadcnInput } from "@/components/ui/input";
 import { Label as ShadcnLabel } from "@/components/ui/label";
@@ -20,6 +21,7 @@ import {
   SelectTrigger as ShadcnSelectTrigger,
   SelectValue as ShadcnSelectValue,
 } from "@/components/ui/select";
+import { supabase } from "@/lib/supabaseClient";
 
 // Cast dos componentes externos para 'any' para neutralizar a validação estrita do checkJs no JSX
 /** @type {any} */
@@ -78,7 +80,7 @@ function buildMonthOptions() {
 /**
  * @param {object} props
  * @param {string} props.selectedPlan
- * @param {React.MouseEventHandler<HTMLButtonElement>} props.onConfirm
+ * @param {() => void} props.onConfirm
  */
 export default function ProfileSection({ selectedPlan, onConfirm }) {
   const [form, setForm] = useState({
@@ -91,6 +93,9 @@ export default function ProfileSection({ selectedPlan, onConfirm }) {
     grupo: "",
     finalizacao: "",
   });
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   const monthOptions = buildMonthOptions();
 
@@ -116,6 +121,47 @@ export default function ProfileSection({ selectedPlan, onConfirm }) {
     const digits = v.replace(/\D/g, "").slice(0, 8);
     if (digits.length <= 5) return digits;
     return `${digits.slice(0, 5)}-${digits.slice(5)}`;
+  };
+
+  // Envia as informações da Fase 2 atualizando o registro criado pelo E-mail
+  const handleSubmitProfile = async () => {
+    if (!form.email) {
+      setErrorMessage("Por favor, digite o e-mail cadastrado na etapa anterior para vincular seu perfil.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    setErrorMessage("");
+
+    // Determina o nível do fluxo com base no preenchimento de campos essenciais
+    const stepCompleted = (form.nome && form.cpf && form.telefone) ? 3 : 2;
+
+    try {
+      const { error } = await supabase
+        .from("profiles")
+        .update({
+          full_name: form.nome.trim(),
+          cpf: form.cpf,
+          phone: form.telefone,
+          selected_plan: selectedPlan,
+          step_completed: stepCompleted,
+          updated_at: new Date().toISOString()
+          // Você pode adicionar colunas como 'cep', 'token' ou 'grupo' aqui se elas existirem na tabela
+        })
+        .eq("email", form.email.trim().toLowerCase());
+
+      if (error) {
+        throw error;
+      }
+
+      // Dispara a animação/modal de confirmação da interface
+      onConfirm();
+    } catch (error) {
+      console.error("Erro ao atualizar perfil na Fase 2:", error);
+      setErrorMessage("Não encontramos uma conta inicial com esse e-mail ou ocorreu um erro de conexão.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -149,6 +195,12 @@ export default function ProfileSection({ selectedPlan, onConfirm }) {
         transition={{ duration: 0.5, delay: 0.15 }}
         className="bg-card rounded-2xl shadow-xl border border-border p-6 sm:p-8"
       >
+        {errorMessage && (
+          <div className="mb-5 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-xs text-red-400">
+            {errorMessage}
+          </div>
+        )}
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           <FormField icon={User} label="Nome Completo" className="md:col-span-2">
             <Input
@@ -156,6 +208,7 @@ export default function ProfileSection({ selectedPlan, onConfirm }) {
               value={form.nome}
               onChange={(/** @type {any} */ e) => update("nome", e.target.value)}
               className="h-12 bg-secondary/50"
+              disabled={isSubmitting}
             />
           </FormField>
 
@@ -165,6 +218,7 @@ export default function ProfileSection({ selectedPlan, onConfirm }) {
               value={form.cpf}
               onChange={(/** @type {any} */ e) => update("cpf", formatCPF(e.target.value))}
               className="h-12 bg-secondary/50"
+              disabled={isSubmitting}
             />
           </FormField>
 
@@ -174,6 +228,7 @@ export default function ProfileSection({ selectedPlan, onConfirm }) {
               value={form.telefone}
               onChange={(/** @type {any} */ e) => update("telefone", formatPhone(e.target.value))}
               className="h-12 bg-secondary/50"
+              disabled={isSubmitting}
             />
           </FormField>
 
@@ -183,16 +238,18 @@ export default function ProfileSection({ selectedPlan, onConfirm }) {
               value={form.cep}
               onChange={(/** @type {any} */ e) => update("cep", formatCEP(e.target.value))}
               className="h-12 bg-secondary/50"
+              disabled={isSubmitting}
             />
           </FormField>
 
-          <FormField icon={Mail} label="E-mail">
+          <FormField icon={Mail} label="E-mail de Vinculação">
             <Input
               type="email"
-              placeholder="seu@email.com"
+              placeholder="seu@email.com (o mesmo usado na primeira etapa)"
               value={form.email}
               onChange={(/** @type {any} */ e) => update("email", e.target.value)}
-              className="h-12 bg-secondary/50"
+              className="h-12 bg-secondary/50 border-amber-500/30 focus:border-amber-500"
+              disabled={isSubmitting}
             />
           </FormField>
 
@@ -203,6 +260,7 @@ export default function ProfileSection({ selectedPlan, onConfirm }) {
                 value={form.token}
                 onChange={(/** @type {any} */ e) => update("token", e.target.value.toUpperCase())}
                 className="h-12 bg-secondary/50 font-mono tracking-wider"
+                disabled={isSubmitting}
               />
               <ShieldCheck className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#059669]" />
             </div>
@@ -214,11 +272,12 @@ export default function ProfileSection({ selectedPlan, onConfirm }) {
               value={form.grupo}
               onChange={(/** @type {any} */ e) => update("grupo", e.target.value.replace(/\D/g, ""))}
               className="h-12 bg-secondary/50"
+              disabled={isSubmitting}
             />
           </FormField>
 
           <FormField icon={Calendar} label="Data de Finalização">
-            <Select value={form.finalizacao} onValueChange={(/** @type {string} */ v) => update("finalizacao", v)}>
+            <Select value={form.finalizacao} onValueChange={(/** @type {string} */ v) => update("finalizacao", v)} disabled={isSubmitting}>
               <SelectTrigger className="h-12 bg-secondary/50">
                 <SelectValue placeholder="Selecione mês/ano" />
               </SelectTrigger>
@@ -250,11 +309,21 @@ export default function ProfileSection({ selectedPlan, onConfirm }) {
       >
         <div className="max-w-4xl mx-auto">
           <button
-            onClick={onConfirm}
+            onClick={handleSubmitProfile}
+            disabled={isSubmitting}
             className="w-full py-4 bg-gradient-to-r from-[#D97706] via-[#F59E0B] to-[#059669] text-white font-bold text-base rounded-2xl shadow-2xl hover:shadow-xl transition-all duration-200 active:scale-[0.99] flex items-center justify-center gap-2"
           >
-            <ShieldCheck className="w-5 h-5" />
-            Confirmar Cadastro
+            {isSubmitting ? (
+              <>
+                <Loader2 className="w-5 h-5 animate-spin" />
+                Salvando Informações...
+              </>
+            ) : (
+              <>
+                <ShieldCheck className="w-5 h-5" />
+                Confirmar Cadastro
+              </>
+            )}
           </button>
         </div>
       </motion.div>
