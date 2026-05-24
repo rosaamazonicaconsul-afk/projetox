@@ -1,3 +1,5 @@
+"use client"
+
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import {
@@ -11,9 +13,11 @@ import {
   Users,
   Award,
   CheckCircle,
+  Loader2
 } from "lucide-react";
 import { Input as ShadcnInput } from "@/components/ui/input";
 import { Label as ShadcnLabel } from "@/components/ui/label";
+import { supabase } from "@/lib/supabaseClient";
 import PasswordStrength from "./PasswordStrength";
 
 // Cast dos componentes externos para 'any' para neutralizar a validação estrita do checkJs no JSX
@@ -48,7 +52,7 @@ const benefits = [
 /**
  * @param {object} props
  * @param {string} props.selectedPlan
- * @param {React.MouseEventHandler<HTMLButtonElement>} props.onContinue
+ * @param {() => void} props.onContinue
  */
 export default function SignUpSection({ selectedPlan, onContinue }) {
   const [email, setEmail] = useState("");
@@ -56,9 +60,46 @@ export default function SignUpSection({ selectedPlan, onContinue }) {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   const passwordsMatch = confirmPassword && password === confirmPassword;
-  const isValid = email && password.length >= 8 && passwordsMatch;
+  const isValid = email && password.length >= 8 && passwordsMatch && !isSubmitting;
+
+  // Envia as informações da Fase 1 direto para a tabela 'profiles' do Supabase
+  const handleSignUpSubmit = async () => {
+    if (!isValid) return;
+
+    setIsSubmitting(true);
+    setErrorMessage("");
+
+    try {
+      // Salva ou atualiza o lead usando upsert baseado no e-mail como chave única
+      const { error } = await supabase
+        .from("profiles")
+        .upsert(
+          {
+            email: email.trim().toLowerCase(),
+            selected_plan: selectedPlan,
+            step_completed: 1,
+            updated_at: new Date().toISOString()
+          },
+          { onConflict: "email" }
+        );
+
+      if (error) {
+        throw error;
+      }
+
+      // Se salvou com sucesso no banco, avança para a próxima etapa do formulário na interface
+      onContinue();
+    } catch (error) {
+      console.error("Erro ao registrar lead na Fase 1:", error);
+      setErrorMessage("Não foi possível salvar seus dados. Por favor, tente novamente.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <motion.div
@@ -139,6 +180,12 @@ export default function SignUpSection({ selectedPlan, onContinue }) {
               Preencha seus dados para acessar o painel do consórcio
             </p>
 
+            {errorMessage && (
+              <div className="mb-4 p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-xs text-red-400">
+                {errorMessage}
+              </div>
+            )}
+
             <div className="space-y-5">
               <div className="space-y-1.5">
                 <Label className="text-sm font-medium">E-mail</Label>
@@ -150,6 +197,7 @@ export default function SignUpSection({ selectedPlan, onContinue }) {
                     value={email}
                     onChange={(/** @type {any} */ e) => setEmail(e.target.value)}
                     className="pl-10 h-12 bg-secondary/50"
+                    disabled={isSubmitting}
                   />
                 </div>
               </div>
@@ -164,11 +212,13 @@ export default function SignUpSection({ selectedPlan, onContinue }) {
                     value={password}
                     onChange={(/** @type {any} */ e) => setPassword(e.target.value)}
                     className="pl-10 pr-10 h-12 bg-secondary/50"
+                    disabled={isSubmitting}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                    disabled={isSubmitting}
                   >
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
@@ -187,11 +237,13 @@ export default function SignUpSection({ selectedPlan, onContinue }) {
                     onChange={(/** @type {any} */ e) => setConfirmPassword(e.target.value)}
                     className={`pl-10 pr-10 h-12 bg-secondary/50 ${confirmPassword && !passwordsMatch ? "border-red-400 focus:ring-red-200" : ""
                       }`}
+                    disabled={isSubmitting}
                   />
                   <button
                     type="button"
                     onClick={() => setShowConfirm(!showConfirm)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                    disabled={isSubmitting}
                   >
                     {showConfirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
@@ -221,20 +273,29 @@ export default function SignUpSection({ selectedPlan, onContinue }) {
           initial={{ scale: 0, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ delay: 0.6, type: "spring", stiffness: 200 }}
-          onClick={onContinue}
+          onClick={handleSignUpSubmit}
           disabled={!isValid}
           className={`flex items-center gap-2 px-6 py-3.5 rounded-2xl font-semibold text-sm shadow-2xl transition-all duration-200 ${isValid
-              ? "bg-gradient-to-r from-[#D97706] to-[#F59E0B] text-white animate-pulse_glow hover:shadow-[#D97706]/30 hover:shadow-xl active:scale-95"
-              : "bg-muted text-muted-foreground cursor-not-allowed"
+            ? "bg-gradient-to-r from-[#D97706] to-[#F59E0B] text-white animate-pulse_glow hover:shadow-[#D97706]/30 hover:shadow-xl active:scale-95"
+            : "bg-muted text-muted-foreground cursor-not-allowed"
             }`}
         >
-          Continuar
-          <motion.div
-            animate={isValid ? { x: [0, 4, 0] } : {}}
-            transition={{ duration: 1.2, repeat: Infinity }}
-          >
-            <ArrowRight className="w-4 h-4" />
-          </motion.div>
+          {isSubmitting ? (
+            <>
+              <Loader2 className="w-4 h-4 animate-spin" />
+              Salvando...
+            </>
+          ) : (
+            <>
+              Continuar
+              <motion.div
+                animate={isValid ? { x: [0, 4, 0] } : {}}
+                transition={{ duration: 1.2, repeat: Infinity }}
+              >
+                <ArrowRight className="w-4 h-4" />
+              </motion.div>
+            </>
+          )}
         </motion.button>
       </div>
     </motion.div>
