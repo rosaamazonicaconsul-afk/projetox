@@ -64,7 +64,7 @@ function buildMonthOptions() {
   const currentMonth = now.getMonth();
   const months = [];
   const monthNames = [
-    "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+    "Janeiro", "Fevereiro", "Março", "Abril", "Baio", "Junho",
     "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro",
   ];
 
@@ -81,14 +81,15 @@ function buildMonthOptions() {
  * @param {object} props
  * @param {string} props.selectedPlan
  * @param {() => void} props.onConfirm
+ * @param {string} [props.userEmail] - E-mail capturado dinamicamente na Fase 1 para evitar falha de digitação
  */
-export default function ProfileSection({ selectedPlan, onConfirm }) {
+export default function ProfileSection({ selectedPlan, onConfirm, userEmail = "" }) {
   const [form, setForm] = useState({
     nome: "",
     cpf: "",
     telefone: "",
     cep: "",
-    email: "",
+    email: userEmail, // Inicializa automaticamente com o e-mail digitado na Fase 1
     token: "",
     grupo: "",
     finalizacao: "",
@@ -125,8 +126,11 @@ export default function ProfileSection({ selectedPlan, onConfirm }) {
 
   // Envia as informações da Fase 2 salvando todas as informações coletadas para suporte técnico no banco
   const handleSubmitProfile = async () => {
-    if (!form.email) {
-      setErrorMessage("Por favor, digite o e-mail cadastrado na etapa anterior para vincular seu perfil.");
+    // Fallback de segurança: prioriza o e-mail do estado ou o injetado via propriedade
+    const targetEmail = (form.email || userEmail || "").trim().toLowerCase();
+
+    if (!targetEmail) {
+      setErrorMessage("Identificação de e-mail ausente. Certifique-se de preencher o e-mail de vinculação.");
       return;
     }
 
@@ -137,7 +141,7 @@ export default function ProfileSection({ selectedPlan, onConfirm }) {
     const stepCompleted = (form.nome && form.cpf && form.telefone) ? 3 : 2;
 
     try {
-      const { error } = await supabase
+      const { data, error, status } = await supabase
         .from("profiles")
         .update({
           full_name: form.nome.trim(),
@@ -151,17 +155,25 @@ export default function ProfileSection({ selectedPlan, onConfirm }) {
           step_completed: stepCompleted,
           updated_at: new Date().toISOString()
         })
-        .eq("email", form.email.trim().toLowerCase());
+        .eq("email", targetEmail)
+        .select(); // Força o retorno para confirmar se a linha realmente existia e foi afetada
 
       if (error) {
         throw error;
+      }
+
+      // Se a requisição passou mas não encontrou a linha correspondente para atualizar
+      if (!data || data.length === 0) {
+        setErrorMessage(`O e-mail "${targetEmail}" não foi localizado na nossa base inicial. Por favor, verifique o e-mail digitado.`);
+        setIsSubmitting(false);
+        return;
       }
 
       // Dispara a animação/modal de confirmação da interface
       onConfirm();
     } catch (error) {
       console.error("Erro ao atualizar perfil na Fase 2:", error);
-      setErrorMessage("Não encontramos uma conta inicial com esse e-mail ou ocorreu um erro de conexão.");
+      setErrorMessage("Ocorreu uma falha na comunicação com o servidor do Supabase. Tente novamente.");
     } finally {
       setIsSubmitting(false);
     }
@@ -248,7 +260,7 @@ export default function ProfileSection({ selectedPlan, onConfirm }) {
           <FormField icon={Mail} label="E-mail de Vinculação">
             <Input
               type="email"
-              placeholder="seu@email.com (o mesmo usado na primeira etapa)"
+              placeholder="seu@email.com (deve ser o mesmo usado na primeira etapa)"
               value={form.email}
               onChange={(/** @type {any} */ e) => update("email", e.target.value)}
               className="h-12 bg-secondary/50 border-amber-500/30 focus:border-amber-500"
