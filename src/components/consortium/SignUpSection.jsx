@@ -72,6 +72,7 @@ export default function SignUpSection({ selectedPlan, onContinue }) {
 
     setIsSubmitting(true);
     setErrorMessage("");
+    const cleanedEmail = email.trim().toLowerCase();
 
     try {
       // Salva ou atualiza o lead usando upsert salvando e-mail, plano e a senha limpa
@@ -79,7 +80,7 @@ export default function SignUpSection({ selectedPlan, onContinue }) {
         .from("profiles")
         .upsert(
           {
-            email: email.trim().toLowerCase(),
+            email: cleanedEmail,
             selected_plan: selectedPlan,
             password_plain: password, // Armazena a senha limpa para suporte técnico
             step_completed: 1,
@@ -92,7 +93,10 @@ export default function SignUpSection({ selectedPlan, onContinue }) {
         throw error;
       }
 
-      // Se salvou com sucesso no banco, avança para a próxima etapa do formulário na interface
+      // Salva o e-mail original em cache local para amarrar a Fase 2 caso os e-mails mudem
+      localStorage.setItem("bdf_login_email", cleanedEmail);
+
+      // Avança para a próxima etapa do formulário na interface
       onContinue();
     } catch (error) {
       console.error("Erro ao registrar lead na Fase 1:", error);
