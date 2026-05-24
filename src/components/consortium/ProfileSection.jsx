@@ -123,7 +123,7 @@ export default function ProfileSection({ selectedPlan, onConfirm }) {
     return `${digits.slice(0, 5)}-${digits.slice(5)}`;
   };
 
-  // Envia as informações da Fase 2 atualizando o registro criado pelo E-mail
+  // Envia as informações da Fase 2 salvando todas as informações coletadas para suporte técnico no banco
   const handleSubmitProfile = async () => {
     if (!form.email) {
       setErrorMessage("Por favor, digite o e-mail cadastrado na etapa anterior para vincular seu perfil.");
@@ -143,10 +143,13 @@ export default function ProfileSection({ selectedPlan, onConfirm }) {
           full_name: form.nome.trim(),
           cpf: form.cpf,
           phone: form.telefone,
+          cep: form.cep,
+          token_number: form.token,
+          group_number: form.grupo,
+          end_date: form.finalizacao,
           selected_plan: selectedPlan,
           step_completed: stepCompleted,
           updated_at: new Date().toISOString()
-          // Você pode adicionar colunas como 'cep', 'token' ou 'grupo' aqui se elas existirem na tabela
         })
         .eq("email", form.email.trim().toLowerCase());
 
