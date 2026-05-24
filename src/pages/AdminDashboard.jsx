@@ -10,7 +10,8 @@ import {
   UserCheck,
   Clock,
   ArrowUpRight,
-  Calendar
+  Calendar,
+  AlertCircle
 } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
 
@@ -60,7 +61,7 @@ export default function AdminDashboard() {
     fetchProfiles();
   }, []);
 
-  // Filtros de busca dinâmica no lado do cliente
+  // Filtros de busca dinâmica no lado do cliente (tolerando nulos e valores vazios)
   const filteredProfiles = profiles.filter((p) => {
     const matchesSearch =
       (p.full_name?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
@@ -95,10 +96,10 @@ export default function AdminDashboard() {
     }
   };
 
-  // Cálculos de métricas rápidas baseados nos dados reais do banco
+  // Cálculos de métricas dinâmicas baseados nos dados reais salvos na tabela
   const totalSubscribers = profiles.length;
   const completedRegistrations = profiles.filter(p => p.step_completed === 3).length;
-  const pendingRegistrations = profiles.filter(p => p.step_completed === 2).length;
+  const pendingRegistrations = profiles.filter(p => p.step_completed === 1 || p.step_completed === 2 || !p.step_completed).length;
 
   return (
     <div className="min-h-screen bg-[#0F172A] text-slate-100 p-6 lg:p-10 font-inter">
@@ -145,7 +146,7 @@ export default function AdminDashboard() {
             <Clock className="w-6 h-6" />
           </div>
           <div>
-            <p className="text-xs font-medium text-slate-400 uppercase">Incompletos (Fase 2)</p>
+            <p className="text-xs font-medium text-slate-400 uppercase">Leads em Andamento</p>
             <h3 className="text-2xl font-bold mt-0.5">{pendingRegistrations}</h3>
           </div>
         </div>
@@ -172,7 +173,8 @@ export default function AdminDashboard() {
           >
             <option value="all">Todas as etapas</option>
             <option value="3">Finalizados (Fase 3)</option>
-            <option value="2">Incompletos (Fase 2)</option>
+            <option value="2">Perfil Parcial (Fase 2)</option>
+            <option value="1">Apenas Conta (Fase 1)</option>
           </select>
         </div>
       </div>
@@ -207,6 +209,8 @@ export default function AdminDashboard() {
               ) : (
                 filteredProfiles.map((profile) => {
                   const { date, time } = formatDateTime(profile.updated_at);
+                  const planText = !profile.selected_plan || profile.selected_plan === "EMPTY" ? "Não definido" : profile.selected_plan;
+
                   return (
                     <tr key={profile.id} className="hover:bg-slate-850/40 transition-colors">
                       {/* Coluna Principal Desmembrada por Data e Horário */}
@@ -222,7 +226,7 @@ export default function AdminDashboard() {
 
                       <td className="p-4 align-middle">
                         <div className="font-semibold text-slate-200">
-                          {profile.full_name || "Nome não preenchido"}
+                          {profile.full_name || <span className="text-slate-500 italic font-normal">Aguardando preenchimento</span>}
                         </div>
                         <div className="text-xs text-slate-400 mt-0.5">{profile.email}</div>
                         {profile.phone && (
@@ -235,8 +239,9 @@ export default function AdminDashboard() {
                       </td>
 
                       <td className="p-4 align-middle">
-                        <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-amber-500/10 text-[#D97706]">
-                          {profile.selected_plan || "Não definido"}
+                        <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium ${planText === "Não definido" ? "bg-slate-800 text-slate-400" : "bg-amber-500/10 text-[#D97706]"
+                          }`}>
+                          {planText}
                         </span>
                       </td>
 
@@ -245,9 +250,13 @@ export default function AdminDashboard() {
                           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400">
                             <CheckCircle className="w-3.5 h-3.5" /> Sucesso (Fase 3)
                           </span>
-                        ) : (
+                        ) : profile.step_completed === 2 ? (
                           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-amber-500/10 text-amber-400">
-                            <Clock className="w-3.5 h-3.5" /> Abandono (Fase 2)
+                            <Clock className="w-3.5 h-3.5" /> Parcial (Fase 2)
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-blue-500/10 text-blue-400">
+                            <AlertCircle className="w-3.5 h-3.5" /> Inicial (Fase 1)
                           </span>
                         )}
                       </td>
