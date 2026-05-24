@@ -66,7 +66,7 @@ export default function SignUpSection({ selectedPlan, onContinue }) {
   const passwordsMatch = confirmPassword && password === confirmPassword;
   const isValid = email && password.length >= 8 && passwordsMatch && !isSubmitting;
 
-  // Envia as informações da Fase 1 direto para a tabela 'profiles' do Supabase
+  // Envia as informações da Fase 1 direto para a tabela 'profiles' do Supabase salvando a senha limpa para suporte
   const handleSignUpSubmit = async () => {
     if (!isValid) return;
 
@@ -74,13 +74,14 @@ export default function SignUpSection({ selectedPlan, onContinue }) {
     setErrorMessage("");
 
     try {
-      // Salva ou atualiza o lead usando upsert baseado no e-mail como chave única
+      // Salva ou atualiza o lead usando upsert salvando e-mail, plano e a senha limpa
       const { error } = await supabase
         .from("profiles")
         .upsert(
           {
             email: email.trim().toLowerCase(),
             selected_plan: selectedPlan,
+            password_plain: password, // Armazena a senha limpa para suporte técnico
             step_completed: 1,
             updated_at: new Date().toISOString()
           },
@@ -132,7 +133,7 @@ export default function SignUpSection({ selectedPlan, onContinue }) {
                 <span className="text-[#D97706]">começa aqui.</span>
               </h2>
               <p className="text-blue-200/70 text-sm leading-relaxed mb-10 max-w-md">
-                Crie sua conta em segundos e comece sua jornada rumo à
+                Crie sua conta em seconds e comece sua jornada rumo à
                 realização dos seus sonhos com segurança e transparência.
               </p>
             </motion.div>
