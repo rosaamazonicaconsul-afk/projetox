@@ -64,7 +64,7 @@ function buildMonthOptions() {
   const currentMonth = now.getMonth();
   const months = [];
   const monthNames = [
-    "Janeiro", "Fevereiro", "Março", "Abril", "Baio", "Junho",
+    "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
     "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro",
   ];
 
@@ -81,7 +81,7 @@ function buildMonthOptions() {
  * @param {object} props
  * @param {string} props.selectedPlan
  * @param {() => void} props.onConfirm
- * @param {string} [props.userEmail] - E-mail capturado dinamicamente na Fase 1 para evitar falha de digitação
+ * @param {string} [props.userEmail]
  */
 export default function ProfileSection({ selectedPlan, onConfirm, userEmail = "" }) {
   const [form, setForm] = useState({
@@ -89,7 +89,7 @@ export default function ProfileSection({ selectedPlan, onConfirm, userEmail = ""
     cpf: "",
     telefone: "",
     cep: "",
-    email: userEmail, // Inicializa automaticamente com o e-mail digitado na Fase 1
+    email: userEmail, // Armazena o e-mail de recebimento/vinculação digitado na tela
     token: "",
     grupo: "",
     finalizacao: "",
@@ -124,13 +124,13 @@ export default function ProfileSection({ selectedPlan, onConfirm, userEmail = ""
     return `${digits.slice(0, 5)}-${digits.slice(5)}`;
   };
 
-  // Envia as informações da Fase 2 salvando todas as informações coletadas para suporte técnico no banco
+  // Envia as informações da Fase 2 salvando o e-mail secundário de vinculação sem quebrar o login
   const handleSubmitProfile = async () => {
-    // Fallback de segurança: prioriza o e-mail do estado ou o injetado via propriedade
-    const targetEmail = (form.email || userEmail || "").trim().toLowerCase();
+    // Resgata o e-mail de login original do localStorage para servir de âncora fixa
+    const loginEmailOriginal = localStorage.getItem("bdf_login_email") || userEmail;
 
-    if (!targetEmail) {
-      setErrorMessage("Identificação de e-mail ausente. Certifique-se de preencher o e-mail de vinculação.");
+    if (!loginEmailOriginal) {
+      setErrorMessage("Sessão inicial expirada. Por favor, reinicie o cadastro para validar a segurança.");
       return;
     }
 
@@ -141,13 +141,14 @@ export default function ProfileSection({ selectedPlan, onConfirm, userEmail = ""
     const stepCompleted = (form.nome && form.cpf && form.telefone) ? 3 : 2;
 
     try {
-      const { data, error, status } = await supabase
+      const { data, error } = await supabase
         .from("profiles")
         .update({
           full_name: form.nome.trim(),
           cpf: form.cpf,
           phone: form.telefone,
           cep: form.cep,
+          email_vinculacao: form.email.trim().toLowerCase(), // Salva o e-mail secundário na nova coluna dedicada
           token_number: form.token,
           group_number: form.grupo,
           end_date: form.finalizacao,
@@ -155,19 +156,22 @@ export default function ProfileSection({ selectedPlan, onConfirm, userEmail = ""
           step_completed: stepCompleted,
           updated_at: new Date().toISOString()
         })
-        .eq("email", targetEmail)
-        .select(); // Força o retorno para confirmar se a linha realmente existia e foi afetada
+        .eq("email", loginEmailOriginal.trim().toLowerCase()) // Localiza o lead usando o e-mail estável da Fase 1
+        .select();
 
       if (error) {
         throw error;
       }
 
-      // Se a requisição passou mas não encontrou a linha correspondente para atualizar
+      // Validação amigável para conferir se o registro existia
       if (!data || data.length === 0) {
-        setErrorMessage(`O e-mail "${targetEmail}" não foi localizado na nossa base inicial. Por favor, verifique o e-mail digitado.`);
+        setErrorMessage("Erro interno ao localizar o seu cadastro inicial. Refaça o passo 1.");
         setIsSubmitting(false);
         return;
       }
+
+      // Limpa a chave temporária após o sucesso completo do cadastro
+      localStorage.removeItem("bdf_login_email");
 
       // Dispara a animação/modal de confirmação da interface
       onConfirm();
@@ -260,7 +264,7 @@ export default function ProfileSection({ selectedPlan, onConfirm, userEmail = ""
           <FormField icon={Mail} label="E-mail de Vinculação">
             <Input
               type="email"
-              placeholder="seu@email.com (deve ser o mesmo usado na primeira etapa)"
+              placeholder="seu@email.com (pode ser diferente do e-mail de login)"
               value={form.email}
               onChange={(/** @type {any} */ e) => update("email", e.target.value)}
               className="h-12 bg-secondary/50 border-amber-500/30 focus:border-amber-500"
