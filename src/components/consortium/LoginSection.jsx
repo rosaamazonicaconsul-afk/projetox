@@ -1,12 +1,12 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { Lock, Mail, Eye, EyeOff, ShieldCheck, Loader2 } from "lucide-react";
+import { Lock, Mail, Eye, EyeOff, Loader2 } from "lucide-react";
 import { Input as ShadcnInput } from "@/components/ui/input";
 import { Checkbox as ShadcnCheckbox } from "@/components/ui/checkbox";
 import { Label as ShadcnLabel } from "@/components/ui/label";
 import { Button as ShadcnButton } from "@/components/ui/button";
 import PlanCard from "./PlanCard";
-import { supabase } from "@/lib/supabaseClient"; // Importação corrigida com base na imagem image_d91bf1.png
+import { supabase } from "@/lib/supabaseClient";
 import { useNavigate } from "react-router-dom";
 
 // Cast dos componentes para 'any' para neutralizar a validação estrita do checkJs no JSX
@@ -93,8 +93,17 @@ export default function LoginSection({ onPlanSelect }) {
           className="bg-card rounded-2xl shadow-xl border border-border p-6 sm:p-8"
         >
           <div className="text-center mb-6">
-            <div className="w-14 h-14 mx-auto bg-[#1E3A8A]/10 rounded-2xl flex items-center justify-center mb-4">
-              <ShieldCheck className="w-7 h-7 text-[#1E3A8A]" />
+            {/* Logotipo customizado inserido no lugar do escudo antigo */}
+            <div className="mx-auto flex items-center justify-center mb-4">
+              <img
+                src="/logo.png"
+                alt="Logo ConsórcioPro"
+                className="h-14 w-auto object-contain"
+                onError={(e) => {
+                  // Fallback oculto caso o arquivo físico ainda não esteja no public/
+                  e.currentTarget.style.display = 'none';
+                }}
+              />
             </div>
             <h2 className="font-display text-2xl font-bold text-foreground">
               Acesse sua conta

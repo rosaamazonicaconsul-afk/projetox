@@ -1,5 +1,5 @@
 import React from "react";
-import { Shield, ChevronRight } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 
 /**
  * @param {object} props
@@ -15,28 +15,29 @@ export default function Header({ currentStep }) {
   return (
     <header className="w-full bg-[#0F172A] text-white">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
+
+        {/* Lado Esquerdo: Área do Logotipo da Empresa */}
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#1E3A8A] to-[#D97706] flex items-center justify-center shadow-lg">
-            <Shield className="w-5 h-5 text-white" />
-          </div>
-          <div>
-            <h1 className="font-display text-lg sm:text-xl font-bold tracking-tight leading-none">
-              ConsórcioPro
-            </h1>
-            <p className="text-[10px] sm:text-xs text-blue-300 tracking-widest uppercase">
-              Plataforma Segura
-            </p>
-          </div>
+          <img
+            src="/logo.png"
+            alt="Logo ConsórcioPro"
+            className="h-9 w-auto object-contain"
+            onError={(e) => {
+              // Fallback visual silencioso caso a imagem demore para propagar no cache
+              e.currentTarget.style.display = 'none';
+            }}
+          />
         </div>
 
+        {/* Lado Direito (Desktop): Menu de Passos do Formulário */}
         <nav className="hidden sm:flex items-center gap-1">
           {steps.map((s, i) => (
             <React.Fragment key={s.num}>
               <div className="flex items-center gap-2">
                 <div
                   className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold transition-all duration-300 ${currentStep >= s.num
-                      ? "bg-[#D97706] text-white shadow-md"
-                      : "bg-white/10 text-white/40"
+                    ? "bg-[#D97706] text-white shadow-md"
+                    : "bg-white/10 text-white/40"
                     }`}
                 >
                   {s.num}
@@ -55,6 +56,7 @@ export default function Header({ currentStep }) {
           ))}
         </nav>
 
+        {/* Lado Direito (Mobile): Indicadores Simplificados em Bolinhas */}
         <div className="sm:hidden flex items-center gap-2">
           {steps.map((s) => (
             <div
