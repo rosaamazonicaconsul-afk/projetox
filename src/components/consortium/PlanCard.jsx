@@ -3,7 +3,7 @@ import { Check, Star, Crown, Zap } from "lucide-react";
 import { motion } from "framer-motion";
 
 const planConfigs = {
-  basico: {
+  Diario: {
     icon: Zap,
     gradient: "from-[#1E3A8A] to-[#2563EB]",
     badge: null,
@@ -18,7 +18,7 @@ const planConfigs = {
     cta: "Começar Agora",
     ctaClass: "bg-[#1E3A8A] hover:bg-[#1E3A8A]/90 text-white",
   },
-  plus: {
+  Mensal: {
     icon: Star,
     gradient: "from-[#059669] to-[#10B981]",
     badge: "Mais Popular",
@@ -34,7 +34,7 @@ const planConfigs = {
     cta: "Escolher Plus",
     ctaClass: "bg-[#059669] hover:bg-[#059669]/90 text-white",
   },
-  premium: {
+  Anual: {
     icon: Crown,
     gradient: "from-[#D97706] to-[#F59E0B]",
     badge: "Exclusivo",
