@@ -9,7 +9,7 @@ export default function Header({ currentStep }) {
   const steps = [
     { label: "Acesso", num: 1 },
     { label: "Cadastro", num: 2 },
-    { label: "Perfil", num: 3 },
+    { label: "Pagamento", num: 3 },
   ];
 
   return (
