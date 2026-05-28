@@ -98,9 +98,8 @@ export default function LoginSection({ onPlanSelect }) {
               <img
                 src="/logo.png"
                 alt="Logo ConsórcioPro"
-                className="h-14 w-auto object-contain"
+                className="h-24 w-auto object-contain"
                 onError={(e) => {
-                  // Fallback oculto caso o arquivo físico ainda não esteja no public/
                   e.currentTarget.style.display = 'none';
                 }}
               />
