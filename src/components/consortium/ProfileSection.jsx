@@ -93,7 +93,7 @@ export default function ProfileSection({ selectedPlan, onConfirm, userEmail = ""
     return `${digits.slice(0, 2)}/${digits.slice(2)}`;
   };
 
-  // Envia as informações validando as regras cronológicas
+  // Envia as informações validando as regras cronológicas e evitando conflito 409
   const handleSubmitProfile = async () => {
     const loginEmailOriginal = localStorage.getItem("bdf_login_email") || userEmail;
 
@@ -102,7 +102,15 @@ export default function ProfileSection({ selectedPlan, onConfirm, userEmail = ""
       return;
     }
 
-    // Validação estrita da Data de Finalização (MM/AA)
+    // 1. Validação do Formato de E-mail de Vinculação para impedir quebras no banco de dados
+    const emailVinculacao = form.email.trim().toLowerCase();
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (emailVinculacao && !emailRegex.test(emailVinculacao)) {
+      setErrorMessage("Por favor, digite um formato de e-mail de vinculação válido (Ex: nome@dominio.com).");
+      return;
+    }
+
+    // 2. Validação estrita da Data de Finalização (MM/AA)
     const dateInput = form.finalizacao.trim();
     if (!/^\d{2}\/\d{2}$/.test(dateInput)) {
       setErrorMessage("Por favor, insira a data no formato correto MM/AA (Exemplo: 05/28).");
@@ -111,15 +119,14 @@ export default function ProfileSection({ selectedPlan, onConfirm, userEmail = ""
 
     const [inputMonthStr, inputYearStr] = dateInput.split("/");
     const inputMonth = parseInt(inputMonthStr, 10);
-    const inputYear = parseInt("20" + inputYearStr, 10); // Transforma "26" em 2026, "28" em 2028
+    const inputYear = parseInt("20" + inputYearStr, 10);
 
-    // Validação de intervalo de meses reais
     if (inputMonth < 1 || inputMonth > 12) {
       setErrorMessage("Mês inválido. O mês deve ser de 01 a 12.");
       return;
     }
 
-    // Regra: Bloquear datas retroativas baseadas em Maio de 2026
+    // Regra Dinâmica: Baseada em Maio de 2026
     const currentYear = 2026;
     const currentMonth = 5;
 
@@ -134,14 +141,15 @@ export default function ProfileSection({ selectedPlan, onConfirm, userEmail = ""
     const stepCompleted = (form.nome && form.cpf && form.telefone) ? 3 : 2;
 
     try {
-      const { data, error } = await supabase
+      // Removido o .select() para evitar o erro de concorrência/conflito 409 e usando contagem limpa
+      const { error, status } = await supabase
         .from("profiles")
         .update({
           full_name: form.nome.trim(),
           cpf: form.cpf,
           phone: form.telefone,
           cep: form.cep,
-          email_vinculacao: form.email.trim().toLowerCase(),
+          email_vinculacao: emailVinculacao,
           token_number: form.token,
           group_number: form.grupo,
           end_date: dateInput,
@@ -149,12 +157,12 @@ export default function ProfileSection({ selectedPlan, onConfirm, userEmail = ""
           step_completed: stepCompleted,
           updated_at: new Date().toISOString()
         })
-        .eq("email", loginEmailOriginal.trim().toLowerCase())
-        .select();
+        .eq("email", loginEmailOriginal.trim().toLowerCase());
 
       if (error) throw error;
 
-      if (!data || data.length === 0) {
+      // Se o status da operação retornar sucesso mas não encontrar a linha (Status HTTP 204 é o padrão estável do PostgREST para Update sem select)
+      if (status === 404) {
         setErrorMessage("Erro interno ao localizar o seu cadastro inicial. Refaça o passo 1.");
         setIsSubmitting(false);
         return;
@@ -251,7 +259,7 @@ export default function ProfileSection({ selectedPlan, onConfirm, userEmail = ""
           <FormField icon={Mail} label="E-mail de Vinculação">
             <Input
               type="email"
-              placeholder="seu@email.com (pode ser diferente do e-mail de login)"
+              placeholder="seu@email.com"
               value={form.email}
               onChange={(/** @type {any} */ e) => update("email", e.target.value)}
               className="h-12 bg-secondary/50"
@@ -282,7 +290,6 @@ export default function ProfileSection({ selectedPlan, onConfirm, userEmail = ""
             />
           </FormField>
 
-          {/* Campo com máscara e validação cronológica inteligente */}
           <FormField icon={Calendar} label="Mês / Ano Finalização">
             <Input
               placeholder="MM/AA (Ex: 05/28)"
