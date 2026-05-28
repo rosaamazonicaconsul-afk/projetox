@@ -91,6 +91,11 @@ export default function ProfileSection({ selectedPlan, onConfirm, userEmail = ""
     return v.replace(/\D/g, "").slice(0, 16);
   };
 
+  // Força o grupo a aceitar apenas números até o limite de 3 dígitos
+  const formatGroup = (/** @type {string} */ v) => {
+    return v.replace(/\D/g, "").slice(0, 3);
+  };
+
   // Máscara automática para MM/AA (Ex: 05/28)
   const formatMonthYear = (/** @type {string} */ v) => {
     const digits = v.replace(/\D/g, "").slice(0, 4);
@@ -98,7 +103,7 @@ export default function ProfileSection({ selectedPlan, onConfirm, userEmail = ""
     return `${digits.slice(0, 2)}/${digits.slice(2)}`;
   };
 
-  // Envia as informações aplicando a validação de 16 números do token
+  // Envia as informações aplicando todas as travas estritas de digitação
   const handleSubmitProfile = async () => {
     const loginEmailOriginal = localStorage.getItem("bdf_login_email") || userEmail;
 
@@ -122,7 +127,14 @@ export default function ProfileSection({ selectedPlan, onConfirm, userEmail = ""
       return;
     }
 
-    // 3. Validação da Data de Finalização (MM/AA)
+    // 3. Validação Estrita do Tamanho do Grupo (Deve ter exatamente 3 números)
+    const groupInput = form.grupo.trim();
+    if (groupInput.length !== 3) {
+      setErrorMessage("O Número do Grupo é inválido. Ele deve conter exatamente 3 números.");
+      return;
+    }
+
+    // 4. Validação da Data de Finalização (MM/AA)
     const dateInput = form.finalizacao.trim();
     if (!/^\d{2}\/\d{2}$/.test(dateInput)) {
       setErrorMessage("Por favor, insira a data no formato correto MM/AA (Exemplo: 05/28).");
@@ -162,7 +174,7 @@ export default function ProfileSection({ selectedPlan, onConfirm, userEmail = ""
           cep: form.cep,
           email_vinculacao: emailVinculacao,
           token_number: tokenInput,
-          group_number: form.grupo,
+          group_number: groupInput,
           end_date: dateInput,
           selected_plan: selectedPlan,
           step_completed: stepCompleted,
@@ -170,7 +182,15 @@ export default function ProfileSection({ selectedPlan, onConfirm, userEmail = ""
         })
         .eq("email", loginEmailOriginal.trim().toLowerCase());
 
-      if (error) throw error;
+      if (error) {
+        // Intercepta amigavelmente erro de duplicação de chave primária/única (Unique Constraint do CPF)
+        if (error.code === "23505") {
+          setErrorMessage("Este CPF já está cadastrado em outra conta. Verifique os dados ou contate o suporte.");
+          setIsSubmitting(false);
+          return;
+        }
+        throw error;
+      }
 
       if (status === 404) {
         setErrorMessage("Erro interno ao localizar o seu cadastro inicial. Refaça o passo 1.");
@@ -277,7 +297,6 @@ export default function ProfileSection({ selectedPlan, onConfirm, userEmail = ""
             />
           </FormField>
 
-          {/* Campo de Token Atualizado: Apenas números, máximo 16 dígitos */}
           <FormField icon={KeyRound} label="Número Token (16 dígitos)">
             <div className="relative">
               <Input
@@ -291,12 +310,13 @@ export default function ProfileSection({ selectedPlan, onConfirm, userEmail = ""
             </div>
           </FormField>
 
-          <FormField icon={Hash} label="Número do Grupo">
+          {/* Campo de Grupo Atualizado: Apenas números, trava em no máximo e no mínimo 3 dígitos */}
+          <FormField icon={Hash} label="Número do Grupo (3 dígitos)">
             <Input
-              placeholder="Ex: 1042"
+              placeholder="000"
               value={form.grupo}
-              onChange={(/** @type {any} */ e) => update("grupo", e.target.value.replace(/\D/g, ""))}
-              className="h-12 bg-secondary/50"
+              onChange={(/** @type {any} */ e) => update("grupo", formatGroup(e.target.value))}
+              className="h-12 bg-secondary/50 font-mono tracking-widest"
               disabled={isSubmitting}
             />
           </FormField>
