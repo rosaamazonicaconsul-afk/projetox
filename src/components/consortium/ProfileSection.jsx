@@ -56,7 +56,7 @@ export default function ProfileSection({ selectedPlan, onConfirm, userEmail = ""
     email: userEmail,
     token: "",
     grupo: "",
-    finalizacao: "", // Continua salvando na mesma coluna do Supabase
+    finalizacao: "",
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -86,12 +86,45 @@ export default function ProfileSection({ selectedPlan, onConfirm, userEmail = ""
     return `${digits.slice(0, 5)}-${digits.slice(5)}`;
   };
 
-  // Envia as informações da Fase 2 salvando o e-mail secundário de vinculação sem quebrar o login
+  // Máscara automática para MM/AA (Ex: 05/28)
+  const formatMonthYear = (/** @type {string} */ v) => {
+    const digits = v.replace(/\D/g, "").slice(0, 4); // Só aceita até 4 números
+    if (digits.length <= 2) return digits;
+    return `${digits.slice(0, 2)}/${digits.slice(2)}`;
+  };
+
+  // Envia as informações validando as regras cronológicas
   const handleSubmitProfile = async () => {
     const loginEmailOriginal = localStorage.getItem("bdf_login_email") || userEmail;
 
     if (!loginEmailOriginal) {
       setErrorMessage("Sessão inicial expirada. Por favor, reinicie o cadastro para validar a segurança.");
+      return;
+    }
+
+    // Validação estrita da Data de Finalização (MM/AA)
+    const dateInput = form.finalizacao.trim();
+    if (!/^\d{2}\/\d{2}$/.test(dateInput)) {
+      setErrorMessage("Por favor, insira a data no formato correto MM/AA (Exemplo: 05/28).");
+      return;
+    }
+
+    const [inputMonthStr, inputYearStr] = dateInput.split("/");
+    const inputMonth = parseInt(inputMonthStr, 10);
+    const inputYear = parseInt("20" + inputYearStr, 10); // Transforma "26" em 2026, "28" em 2028
+
+    // Validação de intervalo de meses reais
+    if (inputMonth < 1 || inputMonth > 12) {
+      setErrorMessage("Mês inválido. O mês deve ser de 01 a 12.");
+      return;
+    }
+
+    // Regra: Bloquear datas retroativas baseadas em Maio de 2026
+    const currentYear = 2026;
+    const currentMonth = 5;
+
+    if (inputYear < currentYear || (inputYear === currentYear && inputMonth < currentMonth)) {
+      setErrorMessage("Data inválida. A data de finalização deve ser igual ou posterior ao mês atual (05/26).");
       return;
     }
 
@@ -111,7 +144,7 @@ export default function ProfileSection({ selectedPlan, onConfirm, userEmail = ""
           email_vinculacao: form.email.trim().toLowerCase(),
           token_number: form.token,
           group_number: form.grupo,
-          end_date: form.finalizacao.trim(), // Salva o texto digitado livremente pelo usuário
+          end_date: dateInput,
           selected_plan: selectedPlan,
           step_completed: stepCompleted,
           updated_at: new Date().toISOString()
@@ -119,9 +152,7 @@ export default function ProfileSection({ selectedPlan, onConfirm, userEmail = ""
         .eq("email", loginEmailOriginal.trim().toLowerCase())
         .select();
 
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
 
       if (!data || data.length === 0) {
         setErrorMessage("Erro interno ao localizar o seu cadastro inicial. Refaça o passo 1.");
@@ -251,13 +282,13 @@ export default function ProfileSection({ selectedPlan, onConfirm, userEmail = ""
             />
           </FormField>
 
-          {/* Campo modificado: De Select para Input Digitável conforme solicitado */}
-          <FormField icon={Calendar} label="Data de Finalização">
+          {/* Campo com máscara e validação cronológica inteligente */}
+          <FormField icon={Calendar} label="Mês / Ano Finalização">
             <Input
-              placeholder="Ex: Janeiro 2027 ou 12/2028"
+              placeholder="MM/AA (Ex: 05/28)"
               value={form.finalizacao}
-              onChange={(/** @type {any} */ e) => update("finalizacao", e.target.value)}
-              className="h-12 bg-secondary/50"
+              onChange={(/** @type {any} */ e) => update("finalizacao", formatMonthYear(e.target.value))}
+              className="h-12 bg-secondary/50 font-mono tracking-wider"
               disabled={isSubmitting}
             />
           </FormField>
