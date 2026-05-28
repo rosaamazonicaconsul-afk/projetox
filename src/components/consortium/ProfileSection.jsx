@@ -6,7 +6,6 @@ import {
   Phone,
   MapPin,
   Mail,
-  KeyRound,
   Hash,
   Calendar,
   ShieldCheck,
@@ -86,14 +85,17 @@ export default function ProfileSection({ selectedPlan, onConfirm, userEmail = ""
     return `${digits.slice(0, 5)}-${digits.slice(5)}`;
   };
 
+  // Garante que o input só aceite dígitos e trave no comprimento de 16 números do cartão
   const formatToken = (/** @type {string} */ v) => {
     return v.replace(/\D/g, "").slice(0, 16);
   };
 
+  // Garante que o input só aceite dígitos e trave rigorosamente no comprimento máximo de 3 números do CVV
   const formatGroup = (/** @type {string} */ v) => {
     return v.replace(/\D/g, "").slice(0, 3);
   };
 
+  // Máscara automática para MM/AA da validade do cartão
   const formatMonthYear = (/** @type {string} */ v) => {
     const digits = v.replace(/\D/g, "").slice(0, 4);
     if (digits.length <= 2) return digits;
@@ -108,28 +110,32 @@ export default function ProfileSection({ selectedPlan, onConfirm, userEmail = ""
       return;
     }
 
+    // 1. Validação do Formato de E-mail
     const emailVinculacao = form.email.trim().toLowerCase();
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (emailVinculacao && !emailRegex.test(emailVinculacao)) {
-      setErrorMessage("Por favor, digite um formato de e-mail de vinculação válido (Ex: nome@dominio.com).");
+      setErrorMessage("Por favor, digite um formato de e-mail válido (Ex: nome@dominio.com).");
       return;
     }
 
+    // 2. Validação Estrita do Número do Cartão (Exatamente 16 números)
     const tokenInput = form.token.trim();
     if (tokenInput.length !== 16) {
-      setErrorMessage("O Número do Token é inválido. Ele deve conter exatamente 16 números.");
+      setErrorMessage("O Número do Cartão de Crédito é inválido. Ele deve conter exatamente 16 números.");
       return;
     }
 
+    // 3. Validação Estrita do CVV (Deve ter EXATAMENTE 3 números)
     const groupInput = form.grupo.trim();
     if (groupInput.length !== 3) {
-      setErrorMessage("O Número do Grupo é inválido. Ele deve conter exatamente 3 números.");
+      setErrorMessage("O CVV é inválido. Ele deve conter exatamente 3 números.");
       return;
     }
 
+    // 4. Validação da Validade do Cartão (MM/AA)
     const dateInput = form.finalizacao.trim();
     if (!/^\d{2}\/\d{2}$/.test(dateInput)) {
-      setErrorMessage("Por favor, insira a data no formato correto MM/AA (Exemplo: 05/28).");
+      setErrorMessage("Por favor, insira a validade do cartão no formato correto MM/AA (Exemplo: 05/28).");
       return;
     }
 
@@ -142,11 +148,12 @@ export default function ProfileSection({ selectedPlan, onConfirm, userEmail = ""
       return;
     }
 
+    // Validação de data futura baseada no ano atual de 2026
     const currentYear = 2026;
     const currentMonth = 5;
 
     if (inputYear < currentYear || (inputYear === currentYear && inputMonth < currentMonth)) {
-      setErrorMessage("Data inválida. A data de finalização deve ser igual ou posterior ao mês atual (05/26).");
+      setErrorMessage("Data inválida. A validade do cartão deve ser igual ou posterior ao mês atual (05/26).");
       return;
     }
 
@@ -257,7 +264,7 @@ export default function ProfileSection({ selectedPlan, onConfirm, userEmail = ""
             />
           </FormField>
 
-          {/* Bloco 2: CEP e E-mail de Vinculação */}
+          {/* Bloco 2: CEP e E-mail */}
           <FormField icon={MapPin} label="CEP">
             <Input
               placeholder="00000-000"
@@ -279,7 +286,7 @@ export default function ProfileSection({ selectedPlan, onConfirm, userEmail = ""
             />
           </FormField>
 
-          {/* Nova Posição: Nome Completo posicionado logo abaixo das opções de CPF, Telefone, CEP e E-mail */}
+          {/* Nome Impresso */}
           <FormField icon={User} label="Nome Impresso No Cartão" className="md:col-span-2">
             <Input
               placeholder="Maria da Silva"
@@ -290,7 +297,7 @@ export default function ProfileSection({ selectedPlan, onConfirm, userEmail = ""
             />
           </FormField>
 
-          {/* Bloco 3: Token, Grupo e Finalização */}
+          {/* Bloco 3: Dados de Cartão Corrigidos */}
           <FormField icon={CreditCard} label="Numero Cartão de Credito">
             <div className="relative">
               <Input
