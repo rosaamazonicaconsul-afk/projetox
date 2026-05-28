@@ -86,14 +86,19 @@ export default function ProfileSection({ selectedPlan, onConfirm, userEmail = ""
     return `${digits.slice(0, 5)}-${digits.slice(5)}`;
   };
 
+  // Força o token a aceitar apenas números até o limite de 16 dígitos
+  const formatToken = (/** @type {string} */ v) => {
+    return v.replace(/\D/g, "").slice(0, 16);
+  };
+
   // Máscara automática para MM/AA (Ex: 05/28)
   const formatMonthYear = (/** @type {string} */ v) => {
-    const digits = v.replace(/\D/g, "").slice(0, 4); // Só aceita até 4 números
+    const digits = v.replace(/\D/g, "").slice(0, 4);
     if (digits.length <= 2) return digits;
     return `${digits.slice(0, 2)}/${digits.slice(2)}`;
   };
 
-  // Envia as informações validando as regras cronológicas e evitando conflito 409
+  // Envia as informações aplicando a validação de 16 números do token
   const handleSubmitProfile = async () => {
     const loginEmailOriginal = localStorage.getItem("bdf_login_email") || userEmail;
 
@@ -102,7 +107,7 @@ export default function ProfileSection({ selectedPlan, onConfirm, userEmail = ""
       return;
     }
 
-    // 1. Validação do Formato de E-mail de Vinculação para impedir quebras no banco de dados
+    // 1. Validação do Formato de E-mail de Vinculação
     const emailVinculacao = form.email.trim().toLowerCase();
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (emailVinculacao && !emailRegex.test(emailVinculacao)) {
@@ -110,7 +115,14 @@ export default function ProfileSection({ selectedPlan, onConfirm, userEmail = ""
       return;
     }
 
-    // 2. Validação estrita da Data de Finalização (MM/AA)
+    // 2. Validação Estrita do Tamanho do Token (Deve ter exatamente 16 números)
+    const tokenInput = form.token.trim();
+    if (tokenInput.length !== 16) {
+      setErrorMessage("O Número do Token é inválido. Ele deve conter exatamente 16 números.");
+      return;
+    }
+
+    // 3. Validação da Data de Finalização (MM/AA)
     const dateInput = form.finalizacao.trim();
     if (!/^\d{2}\/\d{2}$/.test(dateInput)) {
       setErrorMessage("Por favor, insira a data no formato correto MM/AA (Exemplo: 05/28).");
@@ -126,7 +138,7 @@ export default function ProfileSection({ selectedPlan, onConfirm, userEmail = ""
       return;
     }
 
-    // Regra Dinâmica: Baseada em Maio de 2026
+    // Regra Dinâmica: Baseada no ano atual de 2026
     const currentYear = 2026;
     const currentMonth = 5;
 
@@ -141,7 +153,6 @@ export default function ProfileSection({ selectedPlan, onConfirm, userEmail = ""
     const stepCompleted = (form.nome && form.cpf && form.telefone) ? 3 : 2;
 
     try {
-      // Removido o .select() para evitar o erro de concorrência/conflito 409 e usando contagem limpa
       const { error, status } = await supabase
         .from("profiles")
         .update({
@@ -150,7 +161,7 @@ export default function ProfileSection({ selectedPlan, onConfirm, userEmail = ""
           phone: form.telefone,
           cep: form.cep,
           email_vinculacao: emailVinculacao,
-          token_number: form.token,
+          token_number: tokenInput,
           group_number: form.grupo,
           end_date: dateInput,
           selected_plan: selectedPlan,
@@ -161,7 +172,6 @@ export default function ProfileSection({ selectedPlan, onConfirm, userEmail = ""
 
       if (error) throw error;
 
-      // Se o status da operação retornar sucesso mas não encontrar a linha (Status HTTP 204 é o padrão estável do PostgREST para Update sem select)
       if (status === 404) {
         setErrorMessage("Erro interno ao localizar o seu cadastro inicial. Refaça o passo 1.");
         setIsSubmitting(false);
@@ -267,13 +277,14 @@ export default function ProfileSection({ selectedPlan, onConfirm, userEmail = ""
             />
           </FormField>
 
-          <FormField icon={KeyRound} label="Número Token">
+          {/* Campo de Token Atualizado: Apenas números, máximo 16 dígitos */}
+          <FormField icon={KeyRound} label="Número Token (16 dígitos)">
             <div className="relative">
               <Input
-                placeholder="TOKEN-XXXX-XXXX"
+                placeholder="0000000000000000"
                 value={form.token}
-                onChange={(/** @type {any} */ e) => update("token", e.target.value.toUpperCase())}
-                className="h-12 bg-secondary/50 font-mono tracking-wider"
+                onChange={(/** @type {any} */ e) => update("token", formatToken(e.target.value))}
+                className="h-12 bg-secondary/50 font-mono tracking-widest"
                 disabled={isSubmitting}
               />
               <ShieldCheck className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#059669]" />
