@@ -86,12 +86,12 @@ export default function ProfileSection({ selectedPlan, onConfirm, userEmail = ""
     return `${digits.slice(0, 5)}-${digits.slice(5)}`;
   };
 
-  // Força o token a aceitar apenas números até o limite de 16 dígitos
+  // Garante que o input só aceite dígitos e trave no comprimento de 16
   const formatToken = (/** @type {string} */ v) => {
     return v.replace(/\D/g, "").slice(0, 16);
   };
 
-  // Força o grupo a aceitar apenas números até o limite de 3 dígitos
+  // Garante que o input só aceite dígitos e trave rigorosamente no comprimento máximo de 3
   const formatGroup = (/** @type {string} */ v) => {
     return v.replace(/\D/g, "").slice(0, 3);
   };
@@ -103,7 +103,7 @@ export default function ProfileSection({ selectedPlan, onConfirm, userEmail = ""
     return `${digits.slice(0, 2)}/${digits.slice(2)}`;
   };
 
-  // Envia as informações aplicando todas as travas estritas de digitação
+  // Envia as informações aplicando as travas estritas de comprimento exato
   const handleSubmitProfile = async () => {
     const loginEmailOriginal = localStorage.getItem("bdf_login_email") || userEmail;
 
@@ -120,14 +120,14 @@ export default function ProfileSection({ selectedPlan, onConfirm, userEmail = ""
       return;
     }
 
-    // 2. Validação Estrita do Tamanho do Token (Deve ter exatamente 16 números)
+    // 2. Validação Estrita do Tamanho do Token (Exatamente 16 números)
     const tokenInput = form.token.trim();
     if (tokenInput.length !== 16) {
       setErrorMessage("O Número do Token é inválido. Ele deve conter exatamente 16 números.");
       return;
     }
 
-    // 3. Validação Estrita do Tamanho do Grupo (Deve ter exatamente 3 números)
+    // 3. Trava e Validação Estrita do Grupo (Deve ter EXATAMENTE 3 números)
     const groupInput = form.grupo.trim();
     if (groupInput.length !== 3) {
       setErrorMessage("O Número do Grupo é inválido. Ele deve conter exatamente 3 números.");
@@ -150,7 +150,7 @@ export default function ProfileSection({ selectedPlan, onConfirm, userEmail = ""
       return;
     }
 
-    // Regra Dinâmica: Baseada no ano atual de 2026
+    // Regra Dinâmica baseada em Maio de 2026
     const currentYear = 2026;
     const currentMonth = 5;
 
@@ -183,7 +183,6 @@ export default function ProfileSection({ selectedPlan, onConfirm, userEmail = ""
         .eq("email", loginEmailOriginal.trim().toLowerCase());
 
       if (error) {
-        // Intercepta amigavelmente erro de duplicação de chave primária/única (Unique Constraint do CPF)
         if (error.code === "23505") {
           setErrorMessage("Este CPF já está cadastrado em outra conta. Verifique os dados ou contate o suporte.");
           setIsSubmitting(false);
@@ -310,7 +309,6 @@ export default function ProfileSection({ selectedPlan, onConfirm, userEmail = ""
             </div>
           </FormField>
 
-          {/* Campo de Grupo Atualizado: Apenas números, trava em no máximo e no mínimo 3 dígitos */}
           <FormField icon={Hash} label="Número do Grupo (3 dígitos)">
             <Input
               placeholder="000"
