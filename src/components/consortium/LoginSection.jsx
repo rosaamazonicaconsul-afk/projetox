@@ -98,7 +98,7 @@ export default function LoginSection({ onPlanSelect }) {
               <img
                 src="/logo.png"
                 alt="Logo ConsórcioPro"
-                className="h-24 w-auto object-contain"
+                className="h-80 w-auto object-contain"
                 onError={(e) => {
                   e.currentTarget.style.display = 'none';
                 }}
