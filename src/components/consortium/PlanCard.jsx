@@ -3,7 +3,7 @@ import { Check, Star, Crown, Zap } from "lucide-react";
 import { motion } from "framer-motion";
 
 const planConfigs = {
-  Diario: {
+  diario: {
     icon: Zap,
     gradient: "from-[#1E3A8A] to-[#2563EB]",
     badge: null,
@@ -12,12 +12,12 @@ const planConfigs = {
     features: [
       "Acesso ao WhatsApp",
       "Acesso ao Telegram",
-      "Acesso a Localização em tempo real",      
+      "Acesso a Localização em tempo real",
     ],
     cta: "Começar Agora",
     ctaClass: "bg-[#1E3A8A] hover:bg-[#1E3A8A]/90 text-white",
   },
-  Mensal: {
+  mensal: {
     icon: Star,
     gradient: "from-[#059669] to-[#10B981]",
     badge: "Mais Popular",
@@ -31,7 +31,7 @@ const planConfigs = {
     cta: "Escolher Plus",
     ctaClass: "bg-[#059669] hover:bg-[#059669]/90 text-white",
   },
-  Anual: {
+  anual: {
     icon: Crown,
     gradient: "from-[#D97706] to-[#F59E0B]",
     badge: "Exclusivo",
@@ -49,23 +49,28 @@ const planConfigs = {
 
 /**
  * @param {object} props
- * @param {'basico' | 'plus' | 'premium'} props.planKey
+ * @param {'diario' | 'mensal' | 'anual'} props.planKey
  * @param {function} props.onSelect
  * @param {number} props.index
  */
 export default function PlanCard({ planKey, onSelect, index }) {
-  // @ts-ignore
-  const plan = planConfigs[planKey];
+  // Captura a configuração garantindo letras minúsculas
+  const rawKey = planKey ? planKey.toLowerCase() : "diario";
+
+  // Cast estrito para o indexador mapear o objeto sem erro 7053
+  const key = /** @type {'diario' | 'mensal' | 'anual'} */ (rawKey);
+  const plan = planConfigs[key] || planConfigs.diario;
+
   const Icon = plan.icon;
-  const isPopular = planKey === "plus";
-  const isPremium = planKey === "premium";
+  const isPopular = key === "mensal";
+  const isPremium = key === "anual";
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 30 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: index * 0.15 }}
-      className={`relative group ${isPopular ? "lg:-mt-4 lg:mb-4" : ""}`}
+      className={`relative group w-full ${isPopular ? "lg:-mt-4 lg:mb-4" : ""}`}
     >
       {plan.badge && (
         <div
@@ -96,7 +101,7 @@ export default function PlanCard({ planKey, onSelect, index }) {
               <Icon className="w-5 h-5 text-white" />
             </div>
             <h3 className="font-display text-xl font-bold text-foreground capitalize">
-              {planKey}
+              {key}
             </h3>
           </div>
 
@@ -117,7 +122,7 @@ export default function PlanCard({ planKey, onSelect, index }) {
           </ul>
 
           <button
-            onClick={() => onSelect(planKey)}
+            onClick={() => onSelect(key)}
             className={`w-full py-3 px-6 rounded-xl font-semibold text-sm transition-all duration-200 ${plan.ctaClass} shadow-md hover:shadow-lg active:scale-[0.98]`}
           >
             {plan.cta}

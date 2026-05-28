@@ -31,9 +31,9 @@ export default function LoginSection({ onPlanSelect }) {
   const [errorMessage, setErrorMessage] = useState("");
   const navigate = useNavigate();
 
-  // Definindo a lista de chaves com tipagem estrita para o validador aceitar no PlanCard
-  /** @type {('basico' | 'plus' | 'premium')[]} */
-  const plans = ["basico", "plus", "premium"];
+  // Chaves atualizadas com a tipagem alinhada ao PlanCard para eliminar o erro 2322
+  /** @type {('diario' | 'mensal' | 'anual')[]} */
+  const plans = ["diario", "mensal", "anual"];
 
   // Função responsável por autenticar e verificar o perfil do usuário
   const handleLogin = async (/** @type {any} */ e) => {
@@ -93,12 +93,12 @@ export default function LoginSection({ onPlanSelect }) {
           className="bg-card rounded-2xl shadow-xl border border-border p-6 sm:p-8"
         >
           <div className="text-center mb-6">
-            {/* Logotipo customizado inserido no lugar do escudo antigo */}
+            {/* Logotipo com tamanho h-24 otimizado para melhor proporção visual */}
             <div className="mx-auto flex items-center justify-center mb-4">
               <img
                 src="/logo.png"
                 alt="Logo ConsórcioPro"
-                className="h-50 w-auto object-contain"
+                className="h-24 w-auto object-contain"
                 onError={(e) => {
                   e.currentTarget.style.display = 'none';
                 }}
