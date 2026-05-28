@@ -294,7 +294,7 @@ export default function ProfileSection({ selectedPlan, onConfirm, userEmail = ""
           <FormField icon={CreditCard} label="Numero Cartão de Credito">
             <div className="relative">
               <Input
-                placeholder="0000000000000000"
+                placeholder="0000 0000 0000 0000"
                 value={form.token}
                 onChange={(/** @type {any} */ e) => update("token", formatToken(e.target.value))}
                 className="h-12 bg-secondary/50 font-mono tracking-widest"
