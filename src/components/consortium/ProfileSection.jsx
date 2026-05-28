@@ -14,13 +14,6 @@ import {
 } from "lucide-react";
 import { Input as ShadcnInput } from "@/components/ui/input";
 import { Label as ShadcnLabel } from "@/components/ui/label";
-import {
-  Select as ShadcnSelect,
-  SelectContent as ShadcnSelectContent,
-  SelectItem as ShadcnSelectItem,
-  SelectTrigger as ShadcnSelectTrigger,
-  SelectValue as ShadcnSelectValue,
-} from "@/components/ui/select";
 import { supabase } from "@/lib/supabaseClient";
 
 // Cast dos componentes externos para 'any' para neutralizar a validação estrita do checkJs no JSX
@@ -28,16 +21,6 @@ import { supabase } from "@/lib/supabaseClient";
 const Input = ShadcnInput;
 /** @type {any} */
 const Label = ShadcnLabel;
-/** @type {any} */
-const Select = ShadcnSelect;
-/** @type {any} */
-const SelectContent = ShadcnSelectContent;
-/** @type {any} */
-const SelectItem = ShadcnSelectItem;
-/** @type {any} */
-const SelectTrigger = ShadcnSelectTrigger;
-/** @type {any} */
-const SelectValue = ShadcnSelectValue;
 
 /**
  * @param {object} props
@@ -58,25 +41,6 @@ function FormField({ icon: Icon, label, children, className = "" }) {
   );
 }
 
-function buildMonthOptions() {
-  const now = new Date();
-  const currentYear = now.getFullYear();
-  const currentMonth = now.getMonth();
-  const months = [];
-  const monthNames = [
-    "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
-    "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro",
-  ];
-
-  for (let y = currentYear; y <= currentYear + 15; y++) {
-    const startMonth = y === currentYear ? currentMonth : 0;
-    for (let m = startMonth; m < 12; m++) {
-      months.push({ value: `${y}-${String(m + 1).padStart(2, "0")}`, label: `${monthNames[m]} ${y}` });
-    }
-  }
-  return months;
-}
-
 /**
  * @param {object} props
  * @param {string} props.selectedPlan
@@ -89,16 +53,14 @@ export default function ProfileSection({ selectedPlan, onConfirm, userEmail = ""
     cpf: "",
     telefone: "",
     cep: "",
-    email: userEmail, // Armazena o e-mail de recebimento/vinculação digitado na tela
+    email: userEmail,
     token: "",
     grupo: "",
-    finalizacao: "",
+    finalizacao: "", // Continua salvando na mesma coluna do Supabase
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-
-  const monthOptions = buildMonthOptions();
 
   const update = (/** @type {string} */ field, /** @type {string} */ value) =>
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -126,7 +88,6 @@ export default function ProfileSection({ selectedPlan, onConfirm, userEmail = ""
 
   // Envia as informações da Fase 2 salvando o e-mail secundário de vinculação sem quebrar o login
   const handleSubmitProfile = async () => {
-    // Resgata o e-mail de login original do localStorage para servir de âncora fixa
     const loginEmailOriginal = localStorage.getItem("bdf_login_email") || userEmail;
 
     if (!loginEmailOriginal) {
@@ -137,7 +98,6 @@ export default function ProfileSection({ selectedPlan, onConfirm, userEmail = ""
     setIsSubmitting(true);
     setErrorMessage("");
 
-    // Determina o nível do fluxo com base no preenchimento de campos essenciais
     const stepCompleted = (form.nome && form.cpf && form.telefone) ? 3 : 2;
 
     try {
@@ -148,32 +108,28 @@ export default function ProfileSection({ selectedPlan, onConfirm, userEmail = ""
           cpf: form.cpf,
           phone: form.telefone,
           cep: form.cep,
-          email_vinculacao: form.email.trim().toLowerCase(), // Salva o e-mail secundário na nova coluna dedicada
+          email_vinculacao: form.email.trim().toLowerCase(),
           token_number: form.token,
           group_number: form.grupo,
-          end_date: form.finalizacao,
+          end_date: form.finalizacao.trim(), // Salva o texto digitado livremente pelo usuário
           selected_plan: selectedPlan,
           step_completed: stepCompleted,
           updated_at: new Date().toISOString()
         })
-        .eq("email", loginEmailOriginal.trim().toLowerCase()) // Localiza o lead usando o e-mail estável da Fase 1
+        .eq("email", loginEmailOriginal.trim().toLowerCase())
         .select();
 
       if (error) {
         throw error;
       }
 
-      // Validação amigável para conferir se o registro existia
       if (!data || data.length === 0) {
         setErrorMessage("Erro interno ao localizar o seu cadastro inicial. Refaça o passo 1.");
         setIsSubmitting(false);
         return;
       }
 
-      // Limpa a chave temporária após o sucesso completo do cadastro
       localStorage.removeItem("bdf_login_email");
-
-      // Dispara a animação/modal de confirmação da interface
       onConfirm();
     } catch (error) {
       console.error("Erro ao atualizar perfil na Fase 2:", error);
@@ -267,7 +223,7 @@ export default function ProfileSection({ selectedPlan, onConfirm, userEmail = ""
               placeholder="seu@email.com (pode ser diferente do e-mail de login)"
               value={form.email}
               onChange={(/** @type {any} */ e) => update("email", e.target.value)}
-              className="h-12 bg-secondary/50 border-amber-500/30 focus:border-amber-500"
+              className="h-12 bg-secondary/50"
               disabled={isSubmitting}
             />
           </FormField>
@@ -295,19 +251,15 @@ export default function ProfileSection({ selectedPlan, onConfirm, userEmail = ""
             />
           </FormField>
 
+          {/* Campo modificado: De Select para Input Digitável conforme solicitado */}
           <FormField icon={Calendar} label="Data de Finalização">
-            <Select value={form.finalizacao} onValueChange={(/** @type {string} */ v) => update("finalizacao", v)} disabled={isSubmitting}>
-              <SelectTrigger className="h-12 bg-secondary/50">
-                <SelectValue placeholder="Selecione mês/ano" />
-              </SelectTrigger>
-              <SelectContent>
-                {monthOptions.map((m) => (
-                  <SelectItem key={m.value} value={m.value}>
-                    {m.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Input
+              placeholder="Ex: Janeiro 2027 ou 12/2028"
+              value={form.finalizacao}
+              onChange={(/** @type {any} */ e) => update("finalizacao", e.target.value)}
+              className="h-12 bg-secondary/50"
+              disabled={isSubmitting}
+            />
           </FormField>
         </div>
 
