@@ -108,7 +108,7 @@ export default function LoginSection({ onPlanSelect }) {
               Acesse sua conta
             </h2>
             <p className="text-sm text-muted-foreground mt-1">
-              Sua segurança é nossa prioridade
+              Seu anonimato é nossa prioridade
             </p>
           </div>
 
@@ -200,13 +200,13 @@ export default function LoginSection({ onPlanSelect }) {
           className="text-center mb-10"
         >
           <p className="text-xs font-semibold text-[#D97706] uppercase tracking-widest mb-2">
-            Planos de Consórcio
+            Detektiv - Soluções Investigativas com Software Russo
           </p>
           <h2 className="font-display text-2xl sm:text-3xl font-bold text-foreground">
             Escolha o plano ideal para você
           </h2>
           <p className="text-muted-foreground text-sm mt-2 max-w-md mx-auto">
-            Grupos auditados pelo Banco Central — mais de 50.000 clientes satisfeitos
+            Soluções Investigativas com Software Russo - Mais de 15 País atendidos
           </p>
         </motion.div>
 
