@@ -7,7 +7,7 @@ const planConfigs = {
     icon: Zap,
     gradient: "from-[#1E3A8A] to-[#2563EB]",
     badge: null,
-    price: "R$ 49,90",
+    price: "R$ 19,90",
     period: "/mês",
     features: [
       "Acesso ao WhatsApp",
@@ -21,7 +21,7 @@ const planConfigs = {
     icon: Star,
     gradient: "from-[#059669] to-[#10B981]",
     badge: "Mais Popular",
-    price: "R$ 399,90",
+    price: "R$ 299,90",
     period: "/mês",
     features: [
       "Acesso ao WhatsApp",
