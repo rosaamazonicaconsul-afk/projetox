@@ -93,12 +93,12 @@ export default function LoginSection({ onPlanSelect }) {
           className="bg-card rounded-2xl shadow-xl border border-border p-6 sm:p-8"
         >
           <div className="text-center mb-6">
-            {/* Caixa externa de ultra destaque para a logo Detektiv brilhar no formulário */}
-            <div className="mx-auto flex items-center justify-center mb-6 max-w-[240px] bg-slate-900/50 border border-slate-800 rounded-2xl p-4 shadow-inner backdrop-blur-md">
+            {/* Contêiner sem travas de max-width e com altura ampliada para a logo explodir em destaque */}
+            <div className="w-full flex items-center justify-center mb-6 px-2 overflow-hidden">
               <img
                 src="/logo.png"
                 alt="Logo Detektiv"
-                className="h-36 w-full object-contain filter drop-shadow-[0_4px_12px_rgba(37,99,235,0.15)]"
+                className="h-56 w-full object-contain scale-110 block transform transition-transform duration-300"
                 onError={(e) => {
                   e.currentTarget.style.display = 'none';
                 }}
