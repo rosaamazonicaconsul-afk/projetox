@@ -93,12 +93,12 @@ export default function LoginSection({ onPlanSelect }) {
           className="bg-card rounded-2xl shadow-xl border border-border p-6 sm:p-8"
         >
           <div className="text-center mb-6">
-            {/* Contêiner sem travas de max-width e com altura ampliada para a logo explodir em destaque */}
-            <div className="w-full flex items-center justify-center mb-6 px-2 overflow-hidden">
+            {/* Contêiner limpo e redimensionado para preencher a área vermelha de forma natural */}
+            <div className="w-full flex items-center justify-center mb-4 px-1 overflow-hidden">
               <img
                 src="/logo.png"
                 alt="Logo Detektiv"
-                className="h-56 w-full object-contain scale-110 block transform transition-transform duration-300"
+                className="w-full h-auto max-h-[180px] object-contain block"
                 onError={(e) => {
                   e.currentTarget.style.display = 'none';
                 }}
