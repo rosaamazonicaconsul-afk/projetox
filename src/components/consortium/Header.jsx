@@ -16,17 +16,19 @@ export default function Header({ currentStep }) {
     <header className="w-full bg-[#0F172A] text-white">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
 
-        {/* Lado Esquerdo: Área do Logotipo da Empresa */}
-        <div className="flex items-center gap-3">
-          <img
-            src="/logo.png"
-            alt="Logo ConsórcioPro"
-            className="h-9 w-auto object-contain"
-            onError={(e) => {
-              // Fallback visual silencioso caso a imagem demore para propagar no cache
-              e.currentTarget.style.display = 'none';
-            }}
-          />
+        {/* Lado Esquerdo: Área do Logotipo da Empresa dentro de uma Caixa de Destaque */}
+        <div className="flex items-center">
+          <div className="bg-slate-800/60 border border-slate-700/50 rounded-xl p-2.5 shadow-inner backdrop-blur-sm transition-all duration-300 hover:border-slate-600">
+            <img
+              src="/logo.png"
+              alt="Logo Detektiv"
+              className="h-16 w-auto object-contain" // Altura aumentada para h-16 para destaque máximo
+              onError={(e) => {
+                // Fallback visual silencioso caso a imagem demore para propagar no cache
+                e.currentTarget.style.display = 'none';
+              }}
+            />
+          </div>
         </div>
 
         {/* Lado Direito (Desktop): Menu de Passos do Formulário */}
@@ -36,8 +38,8 @@ export default function Header({ currentStep }) {
               <div className="flex items-center gap-2">
                 <div
                   className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold transition-all duration-300 ${currentStep >= s.num
-                    ? "bg-[#D97706] text-white shadow-md"
-                    : "bg-white/10 text-white/40"
+                      ? "bg-[#D97706] text-white shadow-md"
+                      : "bg-white/10 text-white/40"
                     }`}
                 >
                   {s.num}
