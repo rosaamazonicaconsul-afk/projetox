@@ -93,18 +93,18 @@ export default function LoginSection({ onPlanSelect }) {
           className="bg-card rounded-2xl shadow-xl border border-border p-6 sm:p-8"
         >
           <div className="text-center mb-6">
-            {/* Contêiner expandido com padding vertical e scale-125 para ocupar toda a área vermelha */}
-            <div className="w-full flex items-center justify-center pt-4 pb-6 px-4 overflow-hidden select-none">
+            {/* Altura calibrada para 120px (h-[120px]) sem transformações para acalmar o layout */}
+            <div className="w-full flex items-center justify-center mb-4 px-6 overflow-hidden select-none">
               <img
                 src="/logo.png"
                 alt="Logo Detektiv"
-                className="w-full h-auto object-contain block scale-125 transform transition-transform duration-300"
+                className="h-[120px] w-auto object-contain block"
                 onError={(e) => {
                   e.currentTarget.style.display = 'none';
                 }}
               />
             </div>
-            <h2 className="font-display text-2xl font-bold text-foreground mt-4">
+            <h2 className="font-display text-2xl font-bold text-foreground">
               Acesse sua conta
             </h2>
             <p className="text-sm text-muted-foreground mt-1">
@@ -200,13 +200,13 @@ export default function LoginSection({ onPlanSelect }) {
           className="text-center mb-10"
         >
           <p className="text-xs font-semibold text-[#D97706] uppercase tracking-widest mb-2">
-            Detektiv - Soluções Investigativas com Software Russo
+            Planos de Consórcio
           </p>
           <h2 className="font-display text-2xl sm:text-3xl font-bold text-foreground">
             Escolha o plano ideal para você
           </h2>
           <p className="text-muted-foreground text-sm mt-2 max-w-md mx-auto">
-            Soluções Investigativas com Software Russo - Mais de 15 País atendidos
+            Grupos auditados pelo Banco Central — mais de 50.000 clientes satisfeitos
           </p>
         </motion.div>
 
