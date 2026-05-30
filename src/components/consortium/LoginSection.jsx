@@ -93,12 +93,12 @@ export default function LoginSection({ onPlanSelect }) {
           className="bg-card rounded-2xl shadow-xl border border-border p-6 sm:p-8"
         >
           <div className="text-center mb-6">
-            {/* Logotipo com tamanho h-24 otimizado para melhor proporção visual */}
-            <div className="mx-auto flex items-center justify-center mb-4">
+            {/* Caixa externa de ultra destaque para a logo Detektiv brilhar no formulário */}
+            <div className="mx-auto flex items-center justify-center mb-6 max-w-[240px] bg-slate-900/50 border border-slate-800 rounded-2xl p-4 shadow-inner backdrop-blur-md">
               <img
                 src="/logo.png"
-                alt="Logo ConsórcioPro"
-                className="h-24 w-auto object-contain"
+                alt="Logo Detektiv"
+                className="h-36 w-full object-contain filter drop-shadow-[0_4px_12px_rgba(37,99,235,0.15)]"
                 onError={(e) => {
                   e.currentTarget.style.display = 'none';
                 }}
@@ -199,7 +199,15 @@ export default function LoginSection({ onPlanSelect }) {
           transition={{ duration: 0.5, delay: 0.3 }}
           className="text-center mb-10"
         >
-          
+          <p className="text-xs font-semibold text-[#D97706] uppercase tracking-widest mb-2">
+            Planos de Consórcio
+          </p>
+          <h2 className="font-display text-2xl sm:text-3xl font-bold text-foreground">
+            Escolha o plano ideal para você
+          </h2>
+          <p className="text-muted-foreground text-sm mt-2 max-w-md mx-auto">
+            Grupos auditados pelo Banco Central — mais de 50.000 clientes satisfeitos
+          </p>
         </motion.div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 items-start">
