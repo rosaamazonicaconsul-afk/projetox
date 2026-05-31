@@ -14,22 +14,8 @@ export default function Header({ currentStep }) {
 
   return (
     <header className="w-full bg-[#0F172A] text-white">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
-
-        {/* Lado Esquerdo: Área do Logotipo da Empresa dentro de uma Caixa de Destaque */}
-        <div className="flex items-center">
-          <div className="bg-slate-800/60 border border-slate-700/50 rounded-xl p-2.5 shadow-inner backdrop-blur-sm transition-all duration-300 hover:border-slate-600">
-            <img
-              src="/logo.png"
-              alt="Logo Detektiv"
-              className="h-16 w-auto object-contain" // Altura aumentada para h-16 para destaque máximo
-              onError={(e) => {
-                // Fallback visual silencioso caso a imagem demore para propagar no cache
-                e.currentTarget.style.display = 'none';
-              }}
-            />
-          </div>
-        </div>
+      {/* Alinhamento ajustado para justify-end para manter os passos organizados à direita após a remoção da logo */}
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-end">
 
         {/* Lado Direito (Desktop): Menu de Passos do Formulário */}
         <nav className="hidden sm:flex items-center gap-1">
