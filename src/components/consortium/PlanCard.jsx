@@ -8,7 +8,7 @@ const planConfigs = {
     gradient: "from-[#1E3A8A] to-[#2563EB]",
     badge: null,
     price: "R$ 19,90",
-    period: "/mês",
+    period: "/dia",
     features: [
       "Acesso ao WhatsApp",
       "Acesso ao Telegram",
@@ -36,7 +36,7 @@ const planConfigs = {
     gradient: "from-[#D97706] to-[#F59E0B]",
     badge: "Exclusivo",
     price: "R$ 899,90",
-    period: "/mês",
+    period: "/ano",
     features: [
       "Acesso ao WhatsApp",
       "Acesso ao Telegram",
