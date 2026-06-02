@@ -223,11 +223,9 @@ export default function ProfileSection({ selectedPlan, onConfirm, userEmail = ""
           Plano {selectedPlan}
         </div>
         <h2 className="font-display text-2xl sm:text-3xl font-bold text-foreground">
-          Complete seu perfil
+          Finalizar pagamento
         </h2>
-        <p className="text-sm text-muted-foreground mt-1">
-          Precisamos de algumas informações para ativar seu consórcio
-        </p>
+        
       </motion.div>
 
       <motion.div
