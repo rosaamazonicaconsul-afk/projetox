@@ -107,7 +107,7 @@ export default function SignUpSection({ selectedPlan, onContinue }) {
             Crie sua conta
           </h2>
           <p className="text-sm text-muted-foreground mb-8">
-            Preencha seus dados para acessar o painel do consórcio
+            Preencha seus dados para acessar o painel 
           </p>
 
           {errorMessage && (
