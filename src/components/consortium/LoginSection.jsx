@@ -93,12 +93,12 @@ export default function LoginSection({ onPlanSelect }) {
           className="bg-card rounded-2xl shadow-xl border border-border p-6 sm:p-8"
         >
           <div className="text-center mb-6">
-            {/* Altura calibrada para 120px (h-[120px]) sem transformações para acalmar o layout */}
+            {/* Altura ajustada cirurgicamente para h-[100px] buscando o melhor equilíbrio visual dentro da caixa */}
             <div className="w-full flex items-center justify-center mb-4 px-6 overflow-hidden select-none">
               <img
                 src="/logo.png"
                 alt="Logo Detektiv"
-                className="h-[120px] w-auto object-contain block"
+                className="h-[100px] w-auto object-contain block"
                 onError={(e) => {
                   e.currentTarget.style.display = 'none';
                 }}
