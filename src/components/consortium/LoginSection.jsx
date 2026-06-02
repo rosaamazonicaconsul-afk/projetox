@@ -98,7 +98,7 @@ export default function LoginSection({ onPlanSelect }) {
               <img
                 src="/logo.png"
                 alt="Logo Detektiv"
-                className="h-[100px] w-auto object-contain block"
+                className="h-[200px] w-auto object-contain block"
                 onError={(e) => {
                   e.currentTarget.style.display = 'none';
                 }}
