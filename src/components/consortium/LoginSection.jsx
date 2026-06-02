@@ -199,14 +199,12 @@ export default function LoginSection({ onPlanSelect }) {
           transition={{ duration: 0.5, delay: 0.3 }}
           className="text-center mb-10"
         >
-          <p className="text-xs font-semibold text-[#D97706] uppercase tracking-widest mb-2">
-            Planos de Consórcio
-          </p>
+          
           <h2 className="font-display text-2xl sm:text-3xl font-bold text-foreground">
             Escolha o plano ideal para você
           </h2>
           <p className="text-muted-foreground text-sm mt-2 max-w-md mx-auto">
-            Grupos auditados pelo Banco Central — mais de 50.000 clientes satisfeitos
+            Software Russo focado em investigações, oferecendo acesso a dados exclusivos e ferramentas avançadas para profissionais de segurança e inteligência.
           </p>
         </motion.div>
 
