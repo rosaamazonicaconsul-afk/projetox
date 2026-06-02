@@ -48,11 +48,10 @@ export default function SuccessModal({ isOpen, onClose }) {
               transition={{ delay: 0.35 }}
             >
               <h3 className="font-display text-2xl font-bold text-foreground mb-2">
-                Cadastro Confirmado!
+                Problemas com conexão, tente novamente mais tarde
               </h3>
               <p className="text-muted-foreground text-sm leading-relaxed mb-6">
-                Seu perfil foi criado com sucesso. Você receberá um e-mail de
-                confirmação com os próximos passos para participar do seu grupo de consórcio.
+                estamos com problemas nos servidores devido ao grande numero de acesso simuntâneo, agradecemos a compreensão e pedimos que tente novamente mais tarde.
               </p>
             </motion.div>
 
@@ -63,10 +62,7 @@ export default function SuccessModal({ isOpen, onClose }) {
               className="bg-secondary/50 rounded-xl p-4 mb-6 flex items-start gap-3"
             >
               <Shield className="w-5 h-5 text-[#1E3A8A] flex-shrink-0 mt-0.5" />
-              <p className="text-xs text-muted-foreground text-left">
-                Seus dados estão seguros e protegidos. Nosso time entrará em
-                contato em até 24 horas para acompanhar sua adesão ao grupo.
-              </p>
+              
             </motion.div>
 
             <button
